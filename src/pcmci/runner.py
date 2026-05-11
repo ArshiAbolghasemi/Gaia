@@ -18,7 +18,8 @@ from src.dataset.data import load_dataset, prepare_numeric_frame
 from src.dataset.feature import select_feature
 from src.pcmci.dependence import build_dependence_test
 from src.pcmci.graph import (
-    format_causal_graph,
+    build_top_link_pcmci_results,
+    format_tigramite_graph,
     plot_network_graph,
     plot_tigramite_graph,
     plot_tigramite_time_series_graph,
@@ -96,7 +97,12 @@ def run_pcmci(config: RunConfig) -> dict[str, Any]:
         links=all_links,
     )
 
-    return {"numeric": numeric, "results": results, "run_result": run_result}
+    return {
+        "numeric": numeric,
+        "pcmci": pcmci,
+        "results": results,
+        "run_result": run_result,
+    }
 
 
 def extract_links(
@@ -153,6 +159,7 @@ def extract_links(
 
 def save_outputs(
     config: RunConfig,
+    pcmci: PCMCI,
     run_result: RunResult,
     pcmci_results: dict,
 ) -> dict[str, Path]:
@@ -173,7 +180,17 @@ def save_outputs(
     links_path = output_dir / f"{prefix}.csv"
     graph_path = output_dir / f"{prefix}_graph.txt"
 
-    graph_text = format_causal_graph(top_links, title=f"Causal graph for {config.name}")
+    filtered_pcmci_results = build_top_link_pcmci_results(
+        pcmci_results,
+        top_links,
+        run_result.selected_columns,
+    )
+    graph_text = format_tigramite_graph(
+        pcmci,
+        filtered_pcmci_results,
+        title=f"Causal graph for {config.name}",
+        alpha_level=config.pcmci.alpha_level,
+    )
 
     summary_payload = {
         "config_name": run_result.config_name,
@@ -208,9 +225,13 @@ def save_outputs(
         graph_plot_path = output_dir / f"{prefix}_graph.png"
         ts_graph_plot_path = output_dir / f"{prefix}_ts_graph.png"
         logger.info("Saving tigramite plots: %s, %s", graph_plot_path, ts_graph_plot_path)
-        plot_tigramite_graph(pcmci_results, run_result.selected_columns, graph_plot_path)
+        plot_tigramite_graph(
+            filtered_pcmci_results,
+            run_result.selected_columns,
+            graph_plot_path,
+        )
         plot_tigramite_time_series_graph(
-            pcmci_results,
+            filtered_pcmci_results,
             run_result.selected_columns,
             ts_graph_plot_path,
         )

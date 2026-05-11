@@ -1,30 +1,87 @@
 from __future__ import annotations
 
+import io
+from contextlib import redirect_stdout
 from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 from tigramite import plotting as tp
 
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from tigramite.pcmci import PCMCI
+
     from config.model import LinkResult
 
 
-def format_causal_graph(links: list[LinkResult], title: str) -> str:
-    header = [title, "=" * len(title)]
-    if not links:
-        return "\n".join([*header, "No significant links found."])
-
-    body = [
-        (
-            f"{link.source} --(lag={link.lag}, p={link.p_value:.4g}, "
-            f"effect={link.effect_size:.4f})-> {link.target}"
+def format_tigramite_graph(
+    pcmci: PCMCI,
+    pcmci_results: dict,
+    title: str,
+    alpha_level: float,
+) -> str:
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        buffer.write(f"{title}\n")
+        buffer.write(f"{'=' * len(title)}\n")
+        pcmci.print_significant_links(
+            p_matrix=pcmci_results["p_matrix"],
+            val_matrix=pcmci_results["val_matrix"],
+            conf_matrix=pcmci_results.get("conf_matrix"),
+            graph=pcmci_results.get("graph"),
+            ambiguous_triples=pcmci_results.get("ambiguous_triples"),
+            alpha_level=alpha_level,
         )
-        for link in links
-    ]
-    return "\n".join([*header, *body])
+    return buffer.getvalue().strip()
+
+
+def build_top_link_pcmci_results(
+    pcmci_results: dict,
+    links: list[LinkResult],
+    var_names: list[str],
+) -> dict:
+    variable_index = {name: index for index, name in enumerate(var_names)}
+    graph = pcmci_results.get("graph")
+    conf_matrix = pcmci_results.get("conf_matrix")
+    ambiguous_triples = pcmci_results.get("ambiguous_triples")
+
+    filtered_results = {
+        "p_matrix": np.ones_like(pcmci_results["p_matrix"]),
+        "val_matrix": np.zeros_like(pcmci_results["val_matrix"]),
+    }
+
+    if graph is not None:
+        filtered_results["graph"] = np.full_like(graph, "")
+    if conf_matrix is not None:
+        filtered_results["conf_matrix"] = np.zeros_like(conf_matrix)
+    if ambiguous_triples is not None:
+        filtered_results["ambiguous_triples"] = []
+
+    for link in links:
+        source_index = variable_index[link.source]
+        target_index = variable_index[link.target]
+        lag_index = abs(link.lag)
+
+        filtered_results["p_matrix"][source_index, target_index, lag_index] = pcmci_results[
+            "p_matrix"
+        ][source_index, target_index, lag_index]
+        filtered_results["val_matrix"][source_index, target_index, lag_index] = (
+            pcmci_results["val_matrix"][source_index, target_index, lag_index]
+        )
+
+        if graph is not None:
+            filtered_results["graph"][source_index, target_index, lag_index] = graph[
+                source_index, target_index, lag_index
+            ]
+        if conf_matrix is not None:
+            filtered_results["conf_matrix"][source_index, target_index, lag_index] = (
+                conf_matrix[source_index, target_index, lag_index]
+            )
+
+    return filtered_results
 
 
 def plot_tigramite_graph(
