@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from tigramite.pcmci import PCMCI
 
-    from config.model import LinkResult
+    from src.config.model import LinkResult
 
 
 def format_tigramite_graph(

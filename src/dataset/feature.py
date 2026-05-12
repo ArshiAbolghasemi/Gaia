@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import pandas as pd
 
-    from config.model import DataConfig, FeatureSelectionConfig
+    from src.config.model import DataConfig, FeatureSelectionConfig
 
 FEATURE_GROUPS: dict[str, list[str]] = {
     "rv": [
@@ -94,9 +94,9 @@ RV_ALIAS = "__weekly_rv__"
 
 
 def _resolve_group_columns(df: pd.DataFrame) -> dict[str, list[str]]:
-    rv_columns = [column for column in df.columns if column.endswith("_weekly_rv")]
+    rv_columns = _resolve_rv_columns(df)
     if not rv_columns and any(RV_ALIAS in columns for columns in FEATURE_GROUPS.values()):
-        msg = "No '*_weekly_rv' column found in dataset for the 'rv' group"
+        msg = "No 'weekly_rv' or '*_weekly_rv' column found in dataset for the 'rv' group"
         raise ValueError(msg)
 
     resolved: dict[str, list[str]] = {}
@@ -109,6 +109,17 @@ def _resolve_group_columns(df: pd.DataFrame) -> dict[str, list[str]]:
                 group_columns.append(column)
         resolved[group_name] = group_columns
     return resolved
+
+
+def _resolve_rv_columns(df: pd.DataFrame) -> list[str]:
+    rv_columns = [column for column in df.columns if column.endswith("_weekly_rv")]
+    if rv_columns:
+        return rv_columns
+
+    if "weekly_rv" in df.columns:
+        return ["weekly_rv"]
+
+    return []
 
 
 def select_feature(

@@ -1,3 +1,5 @@
+# ruff: noqa: E402
+
 from __future__ import annotations
 
 import argparse
@@ -5,24 +7,21 @@ import logging
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from src.config.load import load_config
 from src.log.config import configure_logging
 from src.pcmci.runner import run_pcmci, save_outputs
 
 logger = logging.getLogger(__name__)
 
-ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
 DEFAULT_CONFIG_DIR = ROOT / "config"
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Run PCMCI + ParCorr causal inference configs."
-    )
+    parser = argparse.ArgumentParser(description="Run PCMCI causal inference configs.")
     parser.add_argument("--config", type=Path, help="Run a single JSON config file.")
     parser.add_argument(
         "--config-dir",
@@ -30,6 +29,10 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_CONFIG_DIR,
         help=f"Directory with JSON configs searched recursively. "
         f"Defaults to {DEFAULT_CONFIG_DIR}.",
+    )
+    parser.add_argument(
+        "--method",
+        help="Only run configs whose dependence method matches this value.",
     )
     parser.add_argument(
         "--log-level",
@@ -74,6 +77,10 @@ def main() -> None:
         return
 
     for config_path in sorted(args.config_dir.rglob("*.json")):
+        if args.method is not None:
+            config = load_config(config_path)
+            if config.dependence.method.lower() != args.method.lower():
+                continue
         execute_config(config_path)
 
 
