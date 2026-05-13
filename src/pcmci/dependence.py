@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from importlib import import_module
 from typing import TYPE_CHECKING
 
@@ -44,5 +45,19 @@ def _build_gpdc_torch(params: dict) -> CondIndTest:
         )
         raise ModuleNotFoundError(msg) from exc
 
+    _suppress_gpytorch_training_input_warning()
     gpdc_torch = module.GPDCtorch
     return gpdc_torch(**params)
+
+
+def _suppress_gpytorch_training_input_warning() -> None:
+    try:
+        gpytorch_warnings = import_module("gpytorch.utils.warnings")
+    except ModuleNotFoundError:
+        return
+
+    warnings.filterwarnings(
+        "ignore",
+        message=r"The input matches the stored training data\..*",
+        category=gpytorch_warnings.GPInputWarning,
+    )
