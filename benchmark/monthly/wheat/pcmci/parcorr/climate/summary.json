@@ -1,0 +1,158 @@
+{
+  "config_name": "wheat_climate_parcorr",
+  "row_count": 192,
+  "selected_columns": [
+    "ssta_elino",
+    "ssta_lanina",
+    "SOI_index",
+    "NAO_index",
+    "tmax_hot_in_planting",
+    "tmax_hot_in_harvesting",
+    "tmax_very_hot_in_planting",
+    "tmax_very_hot_in_harvesting",
+    "tmin_cold_in_planting",
+    "tmin_cold_in_harvesting",
+    "tmin_very_cold_in_planting",
+    "tmin_very_cold_in_harvesting",
+    "awnd_moderate_high_wind_in_planting",
+    "awnd_moderate_high_wind_in_harvesting",
+    "awnd_extreme_high_wind_in_planting",
+    "awnd_extreme_high_wind_in_harvesting",
+    "spi_7d_very_wet_in_planting",
+    "spi_7d_very_wet_in_harvesting",
+    "spi_7d_extreme_wet_in_planting",
+    "spi_7d_extreme_wet_in_harvesting",
+    "spi_7d_very_dry_in_planting",
+    "spi_7d_very_dry_in_harvesting",
+    "spi_7d_extreme_dry_in_planting",
+    "spi_7d_extreme_dry_in_harvesting",
+    "spi_1m_very_wet_in_planting",
+    "spi_1m_very_wet_in_harvesting",
+    "spi_1m_extreme_wet_in_planting",
+    "spi_1m_extreme_wet_in_harvesting",
+    "spi_1m_very_dry_in_planting",
+    "spi_1m_very_dry_in_harvesting",
+    "spi_1m_extreme_dry_in_planting",
+    "spi_1m_extreme_dry_in_harvesting",
+    "spi_3m_very_wet_in_planting",
+    "spi_3m_very_wet_in_harvesting",
+    "spi_3m_extreme_wet_in_planting",
+    "spi_3m_extreme_wet_in_harvesting",
+    "spi_3m_very_dry_in_planting",
+    "spi_3m_very_dry_in_harvesting",
+    "spi_3m_extreme_dry_in_planting",
+    "spi_3m_extreme_dry_in_harvesting",
+    "pdsi_very_wet_in_planting",
+    "pdsi_very_wet_in_harvesting",
+    "pdsi_extreme_wet_in_planting",
+    "pdsi_extreme_wet_in_harvesting",
+    "pdsi_extreme_drought_in_planting",
+    "pdsi_extreme_drought_in_harvesting",
+    "pdsi_severe_drought_in_planting",
+    "pdsi_severe_drought_in_harvesting",
+    "co2_extreme_in_planting",
+    "co2_extreme_in_harvesting",
+    "wheat_weekly_rv"
+  ],
+  "dependence": {
+    "method": "parcorr",
+    "params": {
+      "significance": "analytic"
+    }
+  },
+  "pcmci": {
+    "tau_min": 1,
+    "tau_max": 5,
+    "pc_alpha": 0.2,
+    "alpha_level": 0.05,
+    "fdr_method": "fdr_bh",
+    "max_conds_dim": null,
+    "max_combinations": 1,
+    "max_conds_py": null,
+    "max_conds_px": null
+  },
+  "feature_selection": {
+    "include_groups": [
+      "climate",
+      "rv"
+    ],
+    "include_columns": [],
+    "exclude_columns": []
+  },
+  "output_directory": "/Users/arshia/Projects/Papers/FinancialAI/Gaia/benchmark/monthly/wheat/pcmci/parcorr/climate",
+  "output_name": "climate",
+  "significant_link_count": 87,
+  "displayed_link_count": 10,
+  "top_links": [
+    {
+      "source": "ssta_elino",
+      "target": "ssta_elino",
+      "lag": -1,
+      "p_value": 1.3774144670606165e-28,
+      "effect_size": 0.7528690978927203
+    },
+    {
+      "source": "SOI_index",
+      "target": "SOI_index",
+      "lag": -1,
+      "p_value": 1.8344048663192946e-19,
+      "effect_size": 0.6760068997209328
+    },
+    {
+      "source": "ssta_lanina",
+      "target": "ssta_lanina",
+      "lag": -1,
+      "p_value": 1.8344048663192946e-19,
+      "effect_size": 0.6743772079278604
+    },
+    {
+      "source": "spi_1m_extreme_dry_in_harvesting",
+      "target": "spi_3m_extreme_dry_in_planting",
+      "lag": -1,
+      "p_value": 9.19620216093604e-19,
+      "effect_size": 0.6647873647975174
+    },
+    {
+      "source": "NAO_index",
+      "target": "NAO_index",
+      "lag": -1,
+      "p_value": 2.0155790929247373e-16,
+      "effect_size": 0.6312399236087856
+    },
+    {
+      "source": "spi_1m_extreme_wet_in_planting",
+      "target": "spi_3m_extreme_wet_in_harvesting",
+      "lag": -1,
+      "p_value": 3.569647347967065e-11,
+      "effect_size": 0.5458841026327486
+    },
+    {
+      "source": "pdsi_extreme_drought_in_harvesting",
+      "target": "pdsi_extreme_drought_in_harvesting",
+      "lag": -1,
+      "p_value": 4.0009847848977815e-10,
+      "effect_size": 0.5283876362503852
+    },
+    {
+      "source": "pdsi_severe_drought_in_harvesting",
+      "target": "pdsi_severe_drought_in_harvesting",
+      "lag": -1,
+      "p_value": 1.6029169589425457e-09,
+      "effect_size": 0.5282065339391585
+    },
+    {
+      "source": "pdsi_extreme_wet_in_harvesting",
+      "target": "pdsi_extreme_wet_in_harvesting",
+      "lag": -1,
+      "p_value": 4.103290574106993e-08,
+      "effect_size": 0.4937042524793892
+    },
+    {
+      "source": "tmin_very_cold_in_harvesting",
+      "target": "spi_1m_very_dry_in_planting",
+      "lag": -3,
+      "p_value": 2.1779988944043762e-07,
+      "effect_size": -0.4777709399901497
+    }
+  ]
+}
