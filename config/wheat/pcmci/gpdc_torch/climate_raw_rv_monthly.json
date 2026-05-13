@@ -8,7 +8,7 @@
   "features": {
     "include_groups": [
       "climate_raw",
-      "rv",
+      "rv"
     ],
     "include_columns": [],
     "exclude_columns": []
@@ -33,7 +33,7 @@
   },
   "output": {
     "directory": "benchmark",
-    "run_name": "climate_raw",
+    "run_name": "climate_raw_rv",
     "max_links": 10,
     "save_tigramite_plots": true,
     "save_networkx_plot": true
