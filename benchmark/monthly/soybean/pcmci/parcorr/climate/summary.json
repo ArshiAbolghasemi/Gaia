@@ -1,0 +1,158 @@
+{
+  "config_name": "soybean_climate_parcorr",
+  "row_count": 192,
+  "selected_columns": [
+    "ssta_elino",
+    "ssta_lanina",
+    "SOI_index",
+    "NAO_index",
+    "tmax_hot_in_planting",
+    "tmax_hot_in_harvesting",
+    "tmax_very_hot_in_planting",
+    "tmax_very_hot_in_harvesting",
+    "tmin_cold_in_planting",
+    "tmin_cold_in_harvesting",
+    "tmin_very_cold_in_planting",
+    "tmin_very_cold_in_harvesting",
+    "awnd_moderate_high_wind_in_planting",
+    "awnd_moderate_high_wind_in_harvesting",
+    "awnd_extreme_high_wind_in_planting",
+    "awnd_extreme_high_wind_in_harvesting",
+    "spi_7d_very_wet_in_planting",
+    "spi_7d_very_wet_in_harvesting",
+    "spi_7d_extreme_wet_in_planting",
+    "spi_7d_extreme_wet_in_harvesting",
+    "spi_7d_very_dry_in_planting",
+    "spi_7d_very_dry_in_harvesting",
+    "spi_7d_extreme_dry_in_planting",
+    "spi_7d_extreme_dry_in_harvesting",
+    "spi_1m_very_wet_in_planting",
+    "spi_1m_very_wet_in_harvesting",
+    "spi_1m_extreme_wet_in_planting",
+    "spi_1m_extreme_wet_in_harvesting",
+    "spi_1m_very_dry_in_planting",
+    "spi_1m_very_dry_in_harvesting",
+    "spi_1m_extreme_dry_in_planting",
+    "spi_1m_extreme_dry_in_harvesting",
+    "spi_3m_very_wet_in_planting",
+    "spi_3m_very_wet_in_harvesting",
+    "spi_3m_extreme_wet_in_planting",
+    "spi_3m_extreme_wet_in_harvesting",
+    "spi_3m_very_dry_in_planting",
+    "spi_3m_very_dry_in_harvesting",
+    "spi_3m_extreme_dry_in_planting",
+    "spi_3m_extreme_dry_in_harvesting",
+    "pdsi_very_wet_in_planting",
+    "pdsi_very_wet_in_harvesting",
+    "pdsi_extreme_wet_in_planting",
+    "pdsi_extreme_wet_in_harvesting",
+    "pdsi_extreme_drought_in_planting",
+    "pdsi_extreme_drought_in_harvesting",
+    "pdsi_severe_drought_in_planting",
+    "pdsi_severe_drought_in_harvesting",
+    "co2_extreme_in_planting",
+    "co2_extreme_in_harvesting",
+    "soybeans_weekly_rv"
+  ],
+  "dependence": {
+    "method": "parcorr",
+    "params": {
+      "significance": "analytic"
+    }
+  },
+  "pcmci": {
+    "tau_min": 1,
+    "tau_max": 5,
+    "pc_alpha": 0.2,
+    "alpha_level": 0.05,
+    "fdr_method": "fdr_bh",
+    "max_conds_dim": null,
+    "max_combinations": 1,
+    "max_conds_py": null,
+    "max_conds_px": null
+  },
+  "feature_selection": {
+    "include_groups": [
+      "climate",
+      "rv"
+    ],
+    "include_columns": [],
+    "exclude_columns": []
+  },
+  "output_directory": "/Users/arshia/Projects/Papers/FinancialAI/Gaia/benchmark/monthly/soybean/pcmci/parcorr/climate",
+  "output_name": "climate",
+  "significant_link_count": 261,
+  "displayed_link_count": 10,
+  "top_links": [
+    {
+      "source": "pdsi_extreme_wet_in_planting",
+      "target": "pdsi_extreme_wet_in_harvesting",
+      "lag": -5,
+      "p_value": 2.96877431915486e-48,
+      "effect_size": 0.8741342671247682
+    },
+    {
+      "source": "spi_7d_extreme_dry_in_planting",
+      "target": "spi_1m_extreme_dry_in_planting",
+      "lag": -1,
+      "p_value": 6.860480834017967e-35,
+      "effect_size": 0.7933599800828336
+    },
+    {
+      "source": "ssta_elino",
+      "target": "ssta_elino",
+      "lag": -1,
+      "p_value": 2.2391295690829348e-26,
+      "effect_size": 0.7411638923658749
+    },
+    {
+      "source": "spi_1m_very_dry_in_planting",
+      "target": "pdsi_extreme_drought_in_harvesting",
+      "lag": -5,
+      "p_value": 1.4129594657020736e-22,
+      "effect_size": 0.6988613482885101
+    },
+    {
+      "source": "ssta_lanina",
+      "target": "ssta_lanina",
+      "lag": -1,
+      "p_value": 1.6223638395177206e-22,
+      "effect_size": 0.6958132110705183
+    },
+    {
+      "source": "SOI_index",
+      "target": "SOI_index",
+      "lag": -1,
+      "p_value": 3.675811564536509e-21,
+      "effect_size": 0.6868144512648211
+    },
+    {
+      "source": "pdsi_extreme_drought_in_planting",
+      "target": "pdsi_severe_drought_in_harvesting",
+      "lag": -5,
+      "p_value": 5.927087430761534e-21,
+      "effect_size": 0.685357813887949
+    },
+    {
+      "source": "NAO_index",
+      "target": "NAO_index",
+      "lag": -1,
+      "p_value": 1.241262509486743e-15,
+      "effect_size": 0.6251772913265041
+    },
+    {
+      "source": "pdsi_very_wet_in_planting",
+      "target": "pdsi_very_wet_in_planting",
+      "lag": -1,
+      "p_value": 1.241262509486743e-15,
+      "effect_size": 0.6141063980192768
+    },
+    {
+      "source": "tmin_very_cold_in_harvesting",
+      "target": "awnd_moderate_high_wind_in_harvesting",
+      "lag": -1,
+      "p_value": 1.2276558507650896e-12,
+      "effect_size": 0.5798176122668776
+    }
+  ]
+}
