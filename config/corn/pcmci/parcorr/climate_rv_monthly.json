@@ -1,0 +1,40 @@
+{
+  "name": "corn_climate_rv_monthly_parcorr",
+  "data": {
+    "path": "data/monthly/corn.csv",
+    "date_column": "date",
+    "drop_columns": []
+  },
+  "features": {
+    "include_groups": [
+      "climate",
+      "rv"
+    ],
+    "include_columns": [],
+    "exclude_columns": []
+  },
+  "dependence": {
+    "method": "parcorr",
+    "params": {
+      "significance": "analytic"
+    }
+  },
+  "pcmci": {
+    "tau_min": 1,
+    "tau_max": 5,
+    "pc_alpha": 0.2,
+    "alpha_level": 0.05,
+    "fdr_method": "fdr_bh",
+    "max_conds_dim": null,
+    "max_combinations": 1,
+    "max_conds_py": null,
+    "max_conds_px": null
+  },
+  "output": {
+    "directory": "benchmark",
+    "run_name": "climate_rv",
+    "max_links": 10,
+    "save_tigramite_plots": true,
+    "save_networkx_plot": true
+  }
+}

@@ -1,27 +1,29 @@
 {
-  "name": "corn_climate_raw_gpdc_torch",
+  "name": "soybean_climate_monthly_cmi",
   "data": {
-    "path": "data/weekly/corn_raw.csv",
+    "path": "data/monthly/soybean_raw.csv",
     "date_column": "date",
     "drop_columns": []
   },
   "features": {
     "include_groups": [
-      "climate_raw"
+      "climate"
     ],
     "include_columns": [],
     "exclude_columns": []
   },
   "dependence": {
-    "method": "gpdc_torch",
+    "method": "cmi",
     "params": {
-      "significance": "analytic",
-      "sig_samples": 200
+      "k": 5,
+      "significance": "shuffle_test",
+      "sig_samples": 200,
+      "use_gpu": true
     }
   },
   "pcmci": {
     "tau_min": 1,
-    "tau_max": 16,
+    "tau_max": 5,
     "pc_alpha": 0.2,
     "alpha_level": 0.05,
     "fdr_method": "fdr_bh",
@@ -32,9 +34,9 @@
   },
   "output": {
     "directory": "benchmark",
-    "run_name": "climate_raw",
     "max_links": 10,
     "save_tigramite_plots": true,
-    "save_networkx_plot": true
+    "save_networkx_plot": true,
+    "run_name": "climate"
   }
 }

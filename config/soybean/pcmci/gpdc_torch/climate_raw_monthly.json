@@ -1,27 +1,27 @@
 {
-  "name": "corn_climate_rv_parcorr",
+  "name": "soybean_climate_raw_rv_gpdc_torch",
   "data": {
-    "path": "data/weekly/corn.csv",
+    "path": "data/weekly/soybean_raw.csv",
     "date_column": "date",
     "drop_columns": []
   },
   "features": {
     "include_groups": [
-      "climate",
-      "rv"
+      "climate_raw"
     ],
     "include_columns": [],
     "exclude_columns": []
   },
   "dependence": {
-    "method": "parcorr",
+    "method": "gpdc_torch",
     "params": {
-      "significance": "analytic"
+      "significance": "analytic",
+      "sig_samples": 200
     }
   },
   "pcmci": {
     "tau_min": 1,
-    "tau_max": 16,
+    "tau_max": 5,
     "pc_alpha": 0.2,
     "alpha_level": 0.05,
     "fdr_method": "fdr_bh",
@@ -32,7 +32,7 @@
   },
   "output": {
     "directory": "benchmark",
-    "run_name": "climate_rv",
+    "run_name": "climate_raw_rv",
     "max_links": 10,
     "save_tigramite_plots": true,
     "save_networkx_plot": true

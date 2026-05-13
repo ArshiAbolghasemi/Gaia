@@ -1,7 +1,7 @@
 {
-  "name": "corn_climate_parcorr",
+  "name": "soybean_climate_weekly_cmi",
   "data": {
-    "path": "data/weekly/corn.csv",
+    "path": "data/weekly/soybean_raw.csv",
     "date_column": "date",
     "drop_columns": []
   },
@@ -13,9 +13,12 @@
     "exclude_columns": []
   },
   "dependence": {
-    "method": "parcorr",
+    "method": "cmi",
     "params": {
-      "significance": "analytic"
+      "k": 5,
+      "significance": "shuffle_test",
+      "sig_samples": 200,
+      "use_gpu": true
     }
   },
   "pcmci": {
@@ -31,9 +34,9 @@
   },
   "output": {
     "directory": "benchmark",
-    "run_name": "climate",
     "max_links": 10,
     "save_tigramite_plots": true,
-    "save_networkx_plot": true
+    "save_networkx_plot": true,
+    "run_name": "climate"
   }
 }
