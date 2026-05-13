@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 from tigramite.independence_tests.parcorr import ParCorr
 
+from src.pcmci.cmi import FAISSCMI
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -17,6 +19,7 @@ if TYPE_CHECKING:
 def build_dependence_test(config: DependenceConfig) -> CondIndTest:
     method = config.method.lower()
     builders: dict[str, Callable[[dict], CondIndTest]] = {
+        "cmi": lambda params: FAISSCMI(**params),
         "parcorr": lambda params: ParCorr(**params),
         "gpdc_torch": _build_gpdc_torch,
     }

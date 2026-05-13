@@ -1,0 +1,164 @@
+from __future__ import annotations
+
+from typing import Any, cast
+
+import faiss
+import numpy as np
+from scipy.special import digamma
+from tigramite.independence_tests.independence_tests_base import CondIndTest
+
+
+class FAISSCMI(CondIndTest):
+    X_ID = 0
+    Y_ID = 1
+    Z_ID = 2
+
+    @property
+    def measure(self) -> Any:
+        return self._measure
+
+    def __init__(  # noqa: PLR0913
+        self,
+        k: int = 5,
+        *,
+        use_gpu: bool = True,
+        gpu_device: int = 0,
+        standardize: bool = True,
+        jitter: float = 1e-6,
+        significance: str = "shuffle_test",
+        **kwargs: Any,
+    ) -> None:
+        if k < 1:
+            msg = "CMI parameter 'k' must be at least 1."
+            raise ValueError(msg)
+        if significance == "analytic":
+            msg = "FAISSCMI does not provide analytic significance; use 'shuffle_test'."
+            raise ValueError(msg)
+
+        self.k = int(k)
+        self.use_gpu = use_gpu
+        self.gpu_device = gpu_device
+        self.standardize = standardize
+        self.jitter = jitter
+        self._measure = "faiss_cmi"
+        self.two_sided = False
+        self.residual_based = False
+        self.recycle_residuals = False
+        self.res = self._build_gpu_resources() if use_gpu else None
+
+        CondIndTest.__init__(self, significance=significance, **kwargs)
+
+    def _build_gpu_resources(self) -> Any | None:
+        standard_gpu_resources = getattr(faiss, "StandardGpuResources", None)
+        if standard_gpu_resources is None:
+            return None
+        try:
+            return cast("Any", standard_gpu_resources)()
+        except Exception:
+            return None
+
+    def _build_index(self, dim: int) -> Any:
+        cpu_index = faiss.IndexFlatL2(dim)
+        index_cpu_to_gpu = getattr(faiss, "index_cpu_to_gpu", None)
+        if self.res is None or index_cpu_to_gpu is None:
+            return cpu_index
+        try:
+            return cast("Any", index_cpu_to_gpu)(self.res, self.gpu_device, cpu_index)
+        except Exception:
+            return cpu_index
+
+    def _prepare_array(self, array: np.ndarray) -> np.ndarray:
+        prepared = np.asarray(array, dtype=np.float64).copy()
+        if self.standardize:
+            prepared -= prepared.mean(axis=1, keepdims=True)
+            std = prepared.std(axis=1, keepdims=True)
+            std[std == 0.0] = 1.0
+            prepared /= std
+
+        if self.jitter > 0.0:
+            scale = prepared.std(axis=1, keepdims=True)
+            scale[scale == 0.0] = 1.0
+            noise = self.random_state.random(prepared.shape)
+            prepared += self.jitter * scale * noise
+
+        return prepared
+
+    def _knn_distances(self, data: np.ndarray) -> np.ndarray:
+        samples = np.ascontiguousarray(data, dtype=np.float32)
+        index = self._build_index(samples.shape[1])
+        index.add(samples)
+        distances, _ = index.search(samples, self.k + 1)
+        return np.sqrt(distances[:, -1].astype(np.float64))
+
+    def _count_neighbors(self, space: np.ndarray, eps: np.ndarray) -> np.ndarray:
+        n_samples = space.shape[0]
+        if space.shape[1] == 0:
+            return np.full(n_samples, n_samples - 1, dtype=np.float64)
+
+        counts = np.zeros(n_samples, dtype=np.float64)
+        for i in range(n_samples):
+            distances = np.linalg.norm(space - space[i], axis=1)
+            counts[i] = np.sum(distances < eps[i]) - 1
+        return counts
+
+    def get_dependence_measure(
+        self,
+        array: np.ndarray,
+        xyz: np.ndarray,
+        data_type: np.ndarray | None = None,
+    ) -> Any:
+        del data_type
+
+        prepared = self._prepare_array(array)
+        x = prepared[xyz == self.X_ID].T
+        y = prepared[xyz == self.Y_ID].T
+        z = prepared[xyz == self.Z_ID].T
+
+        xyz_space = np.column_stack([x, y, z])
+        xz_space = np.column_stack([x, z])
+        yz_space = np.column_stack([y, z])
+
+        eps = self._knn_distances(xyz_space)
+        nxz = self._count_neighbors(xz_space, eps)
+        nyz = self._count_neighbors(yz_space, eps)
+        nz = self._count_neighbors(z, eps)
+
+        value = (
+            digamma(self.k)
+            + np.mean(digamma(nz + 1.0))
+            - np.mean(digamma(nxz + 1.0) + digamma(nyz + 1.0))
+        )
+        return float(value)
+
+    def get_shuffle_significance(
+        self,
+        array: np.ndarray,
+        xyz: np.ndarray,
+        value: float,
+        data_type: np.ndarray | None = None,
+        return_null_dist: bool = False,  # noqa: FBT002
+    ) -> Any:
+        del data_type
+
+        try:
+            null_dist = self._get_shuffle_dist(
+                array,
+                xyz,
+                self.get_dependence_measure,
+                sig_samples=self.sig_samples,
+                sig_blocklength=self.sig_blocklength,
+                verbosity=self.verbosity,
+            )
+        except (TypeError, ValueError):
+            null_dist = self._get_shuffle_dist(
+                array,
+                xyz,
+                self.get_dependence_measure,
+                sig_samples=self.sig_samples,
+                sig_blocklength=1,
+                verbosity=self.verbosity,
+            )
+        pval = float(np.sum(null_dist >= value) + 1) / (self.sig_samples + 1)
+        if return_null_dist:
+            return pval, null_dist
+        return pval
