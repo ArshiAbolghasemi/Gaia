@@ -269,12 +269,25 @@ def _write_links_csv(path: Path, links: list[LinkResult]) -> None:
 
 
 def _build_output_dir(config: RunConfig) -> Path:
+    data_frequency = _infer_data_frequency(config.data.path)
     crop_name = config.data.path.stem.lower()
     output_dir = (
-        config.output.directory / crop_name / "pcmci" / config.dependence.method.lower()
+        config.output.directory
+        / data_frequency
+        / crop_name
+        / "pcmci"
+        / config.dependence.method.lower()
     )
     logger.debug("Output directory: %s", output_dir)
     return output_dir
+
+
+def _infer_data_frequency(data_path: Path) -> str:
+    for part in data_path.parts:
+        normalized = part.lower()
+        if normalized in {"weekly", "monthly"}:
+            return normalized
+    return data_path.parent.name.lower()
 
 
 def _build_output_stem(config: RunConfig) -> str:
