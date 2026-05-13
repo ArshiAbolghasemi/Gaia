@@ -17,7 +17,11 @@ def load_config(path: Path) -> RunConfig:
     payload = json.loads(path.read_text())
     base_dir = path.parent
     data_path = _resolve_config_path(base_dir, payload["data"]["path"])
-    output_dir = _resolve_config_path(base_dir, payload["output"]["directory"])
+    output_dir = _resolve_config_path(
+        base_dir,
+        payload["output"]["directory"],
+        create_if_missing=True,
+    )
 
     return RunConfig(
         name=payload["name"],
@@ -56,10 +60,15 @@ def load_config_dir(config_dir: Path) -> list[RunConfig]:
     return [load_config(path) for path in config_paths]
 
 
-def _resolve_config_path(base_dir: Path, configured_path: str) -> Path:
+def _resolve_config_path(
+    base_dir: Path,
+    configured_path: str,
+    *,
+    create_if_missing: bool = False,
+) -> Path:
+    del base_dir
     path = Path(configured_path)
-    if path.is_absolute():
-        return path
-    if path.exists():
-        return path.resolve()
-    return (base_dir / path).resolve()
+    resolved = path if path.is_absolute() else path.resolve()
+    if create_if_missing:
+        resolved.mkdir(parents=True, exist_ok=True)
+    return resolved

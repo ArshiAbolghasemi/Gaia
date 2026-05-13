@@ -167,7 +167,7 @@ def save_outputs(
     logger.info("Saving outputs to: %s", output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    prefix = _build_output_stem(config)
+    output_name = _build_output_name(config)
     top_links = run_result.links[: config.output.max_links]
     logger.debug(
         "Using top %d of %d links (max_links=%d)",
@@ -176,9 +176,9 @@ def save_outputs(
         config.output.max_links,
     )
 
-    summary_path = output_dir / f"{prefix}_summary.json"
-    links_path = output_dir / f"{prefix}.csv"
-    graph_path = output_dir / f"{prefix}_graph.txt"
+    summary_path = output_dir / "summary.json"
+    links_path = output_dir / "links.csv"
+    graph_path = output_dir / "graph.txt"
 
     filtered_pcmci_results = build_top_link_pcmci_results(
         pcmci_results,
@@ -200,7 +200,7 @@ def save_outputs(
         "pcmci": asdict(config.pcmci),
         "feature_selection": asdict(config.features),
         "output_directory": str(output_dir),
-        "output_stem": prefix,
+        "output_name": output_name,
         "significant_link_count": len(run_result.links),
         "displayed_link_count": len(top_links),
         "top_links": [asdict(link) for link in top_links],
@@ -222,8 +222,8 @@ def save_outputs(
     }
 
     if config.output.save_tigramite_plots:
-        graph_plot_path = output_dir / f"{prefix}_graph.png"
-        ts_graph_plot_path = output_dir / f"{prefix}_ts_graph.png"
+        graph_plot_path = output_dir / "graph.png"
+        ts_graph_plot_path = output_dir / "ts_graph.png"
         logger.info("Saving tigramite plots: %s, %s", graph_plot_path, ts_graph_plot_path)
         plot_tigramite_graph(
             filtered_pcmci_results,
@@ -239,7 +239,7 @@ def save_outputs(
         output_paths["ts_graph_plot"] = ts_graph_plot_path
 
     if config.output.save_networkx_plot:
-        network_plot_path = output_dir / f"{prefix}_networkx.png"
+        network_plot_path = output_dir / "networkx.png"
         logger.info("Saving networkx plot: %s", network_plot_path)
         plot_network_graph(
             top_links,
@@ -271,12 +271,14 @@ def _write_links_csv(path: Path, links: list[LinkResult]) -> None:
 def _build_output_dir(config: RunConfig) -> Path:
     data_frequency = _infer_data_frequency(config.data.path)
     crop_name = config.data.path.stem.lower()
+    output_name = _build_output_name(config)
     output_dir = (
         config.output.directory
         / data_frequency
         / crop_name
         / "pcmci"
         / config.dependence.method.lower()
+        / output_name
     )
     logger.debug("Output directory: %s", output_dir)
     return output_dir
@@ -290,10 +292,10 @@ def _infer_data_frequency(data_path: Path) -> str:
     return data_path.parent.name.lower()
 
 
-def _build_output_stem(config: RunConfig) -> str:
+def _build_output_name(config: RunConfig) -> str:
     if config.output.run_name:
-        logger.debug("Using explicit run_name as output stem: %s", config.output.run_name)
+        logger.debug("Using explicit run_name as output name: %s", config.output.run_name)
         return config.output.run_name
-    stem = "_".join(config.features.include_groups)
-    logger.debug("Derived output stem from include_groups: %s", stem)
-    return stem
+    name = "_".join(config.features.include_groups)
+    logger.debug("Derived output name from include_groups: %s", name)
+    return name
