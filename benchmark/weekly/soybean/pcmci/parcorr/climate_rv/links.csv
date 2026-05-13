@@ -1,0 +1,11 @@
+source,target,lag,p_value,effect_size
+SOI_index,SOI_index,-1,8.275237953345968e-289,0.9068537514218584
+NAO_index,NAO_index,-1,8.69849644684355e-288,0.9100293357458786
+ssta_elino,ssta_elino,-1,1.1526649702822468e-120,0.7264796293663841
+ssta_lanina,ssta_lanina,-1,3.7268392852360446e-115,0.7098577577987053
+pdsi_extreme_wet_in_harvesting,pdsi_extreme_wet_in_harvesting,-1,3.303881449693403e-95,0.6686962825117246
+spi_7d_extreme_dry_in_planting,spi_1m_extreme_dry_in_planting,-3,5.7379758067729984e-77,0.6125683096177204
+spi_3m_extreme_wet_in_planting,spi_3m_extreme_wet_in_planting,-1,1.1821873423776456e-72,0.6055132278291593
+spi_3m_extreme_dry_in_harvesting,spi_3m_extreme_dry_in_harvesting,-1,1.2263093168687342e-69,0.5935981663955019
+NAO_index,NAO_index,-2,2.756765308412536e-65,-0.5779982275254143
+pdsi_severe_drought_in_harvesting,pdsi_severe_drought_in_harvesting,-1,8.648181031390364e-62,0.5632331116980525

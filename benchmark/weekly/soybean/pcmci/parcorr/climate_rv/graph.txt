@@ -1,0 +1,116 @@
+Causal graph for soybean_climate_rv_parcorr
+===========================================
+
+## Significant links at alpha = 0.05:
+
+    Variable ssta_elino has 1 link(s):
+        (ssta_elino -1): pval = 0.00000 | val =  0.726
+
+    Variable ssta_lanina has 1 link(s):
+        (ssta_lanina -1): pval = 0.00000 | val =  0.710
+
+    Variable SOI_index has 1 link(s):
+        (SOI_index -1): pval = 0.00000 | val =  0.907
+
+    Variable NAO_index has 2 link(s):
+        (NAO_index -1): pval = 0.00000 | val =  0.910
+        (NAO_index -2): pval = 0.00000 | val = -0.578
+
+    Variable tmax_hot_in_planting has 0 link(s):
+
+    Variable tmax_hot_in_harvesting has 0 link(s):
+
+    Variable tmax_very_hot_in_planting has 0 link(s):
+
+    Variable tmax_very_hot_in_harvesting has 0 link(s):
+
+    Variable tmin_cold_in_planting has 0 link(s):
+
+    Variable tmin_cold_in_harvesting has 0 link(s):
+
+    Variable tmin_very_cold_in_planting has 0 link(s):
+
+    Variable tmin_very_cold_in_harvesting has 0 link(s):
+
+    Variable awnd_moderate_high_wind_in_planting has 0 link(s):
+
+    Variable awnd_moderate_high_wind_in_harvesting has 0 link(s):
+
+    Variable awnd_extreme_high_wind_in_planting has 0 link(s):
+
+    Variable awnd_extreme_high_wind_in_harvesting has 0 link(s):
+
+    Variable spi_7d_very_wet_in_planting has 0 link(s):
+
+    Variable spi_7d_very_wet_in_harvesting has 0 link(s):
+
+    Variable spi_7d_extreme_wet_in_planting has 0 link(s):
+
+    Variable spi_7d_extreme_wet_in_harvesting has 0 link(s):
+
+    Variable spi_7d_very_dry_in_planting has 0 link(s):
+
+    Variable spi_7d_very_dry_in_harvesting has 0 link(s):
+
+    Variable spi_7d_extreme_dry_in_planting has 0 link(s):
+
+    Variable spi_7d_extreme_dry_in_harvesting has 0 link(s):
+
+    Variable spi_1m_very_wet_in_planting has 0 link(s):
+
+    Variable spi_1m_very_wet_in_harvesting has 0 link(s):
+
+    Variable spi_1m_extreme_wet_in_planting has 0 link(s):
+
+    Variable spi_1m_extreme_wet_in_harvesting has 0 link(s):
+
+    Variable spi_1m_very_dry_in_planting has 0 link(s):
+
+    Variable spi_1m_very_dry_in_harvesting has 0 link(s):
+
+    Variable spi_1m_extreme_dry_in_planting has 1 link(s):
+        (spi_7d_extreme_dry_in_planting -3): pval = 0.00000 | val =  0.613
+
+    Variable spi_1m_extreme_dry_in_harvesting has 0 link(s):
+
+    Variable spi_3m_very_wet_in_planting has 0 link(s):
+
+    Variable spi_3m_very_wet_in_harvesting has 0 link(s):
+
+    Variable spi_3m_extreme_wet_in_planting has 1 link(s):
+        (spi_3m_extreme_wet_in_planting -1): pval = 0.00000 | val =  0.606
+
+    Variable spi_3m_extreme_wet_in_harvesting has 0 link(s):
+
+    Variable spi_3m_very_dry_in_planting has 0 link(s):
+
+    Variable spi_3m_very_dry_in_harvesting has 0 link(s):
+
+    Variable spi_3m_extreme_dry_in_planting has 0 link(s):
+
+    Variable spi_3m_extreme_dry_in_harvesting has 1 link(s):
+        (spi_3m_extreme_dry_in_harvesting -1): pval = 0.00000 | val =  0.594
+
+    Variable pdsi_very_wet_in_planting has 0 link(s):
+
+    Variable pdsi_very_wet_in_harvesting has 0 link(s):
+
+    Variable pdsi_extreme_wet_in_planting has 0 link(s):
+
+    Variable pdsi_extreme_wet_in_harvesting has 1 link(s):
+        (pdsi_extreme_wet_in_harvesting -1): pval = 0.00000 | val =  0.669
+
+    Variable pdsi_extreme_drought_in_planting has 0 link(s):
+
+    Variable pdsi_extreme_drought_in_harvesting has 0 link(s):
+
+    Variable pdsi_severe_drought_in_planting has 0 link(s):
+
+    Variable pdsi_severe_drought_in_harvesting has 1 link(s):
+        (pdsi_severe_drought_in_harvesting -1): pval = 0.00000 | val =  0.563
+
+    Variable co2_extreme_in_planting has 0 link(s):
+
+    Variable co2_extreme_in_harvesting has 0 link(s):
+
+    Variable soybeans_weekly_rv has 0 link(s):
