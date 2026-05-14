@@ -35,6 +35,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Only run configs whose dependence method matches this value.",
     )
     parser.add_argument(
+        "--frequency",
+        choices=["weekly", "monthly"],
+        help="Only run configs whose dataset frequency matches this value.",
+    )
+    parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -43,9 +48,10 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def execute_config(config_path: Path) -> None:
+def execute_config(config_path: Path, config=None) -> None:
     logger.info("Executing config: %s", config_path)
-    config = load_config(config_path)
+    if config is None:
+        config = load_config(config_path)
     payload = run_pcmci(config)
     paths = save_outputs(
         config,
@@ -69,6 +75,14 @@ def execute_config(config_path: Path) -> None:
     logger.info(graph_text)
 
 
+def infer_frequency_from_path(path: Path) -> str | None:
+    for part in path.parts:
+        normalized = part.lower()
+        if normalized in {"weekly", "monthly"}:
+            return normalized
+    return None
+
+
 def main() -> None:
     args = build_parser().parse_args()
     configure_logging(args.log_level)
@@ -77,11 +91,16 @@ def main() -> None:
         return
 
     for config_path in sorted(args.config_dir.rglob("*.json")):
-        if args.method is not None:
+        config = None
+        if args.method is not None or args.frequency is not None:
             config = load_config(config_path)
-            if config.dependence.method.lower() != args.method.lower():
+        if args.method is not None and config.dependence.method.lower() != args.method.lower():
+            continue
+        if args.frequency is not None:
+            frequency = infer_frequency_from_path(config.data.path)
+            if frequency != args.frequency.lower():
                 continue
-        execute_config(config_path)
+        execute_config(config_path, config=config)
 
 
 if __name__ == "__main__":
