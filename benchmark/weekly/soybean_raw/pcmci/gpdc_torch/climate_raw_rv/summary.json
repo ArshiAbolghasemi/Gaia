@@ -1,0 +1,113 @@
+{
+  "config_name": "soybean_climate_raw_rv_gpdc_torch",
+  "row_count": 800,
+  "selected_columns": [
+    "prcp",
+    "awnd",
+    "tmin",
+    "tmax",
+    "co2",
+    "pdsi"
+  ],
+  "dependence": {
+    "method": "gpdc_torch",
+    "params": {
+      "significance": "analytic",
+      "sig_samples": 200
+    }
+  },
+  "pcmci": {
+    "tau_min": 1,
+    "tau_max": 5,
+    "pc_alpha": 0.2,
+    "alpha_level": 0.05,
+    "fdr_method": "fdr_bh",
+    "max_conds_dim": null,
+    "max_combinations": 1,
+    "max_conds_py": null,
+    "max_conds_px": null
+  },
+  "feature_selection": {
+    "include_groups": [
+      "climate_raw"
+    ],
+    "include_columns": [],
+    "exclude_columns": []
+  },
+  "output_directory": "/Users/arshia/Projects/Papers/FinancialAI/Gaia/benchmark/weekly/soybean_raw/pcmci/gpdc_torch/climate_raw_rv",
+  "output_name": "climate_raw_rv",
+  "significant_link_count": 22,
+  "displayed_link_count": 10,
+  "top_links": [
+    {
+      "source": "tmax",
+      "target": "tmax",
+      "lag": -1,
+      "p_value": 0.0,
+      "effect_size": 0.5052526206668946
+    },
+    {
+      "source": "co2",
+      "target": "co2",
+      "lag": -1,
+      "p_value": 0.0,
+      "effect_size": 0.4674767522701227
+    },
+    {
+      "source": "pdsi",
+      "target": "pdsi",
+      "lag": -1,
+      "p_value": 0.0,
+      "effect_size": 0.44490699687169477
+    },
+    {
+      "source": "prcp",
+      "target": "pdsi",
+      "lag": -1,
+      "p_value": 0.0,
+      "effect_size": 0.21940418682658402
+    },
+    {
+      "source": "co2",
+      "target": "co2",
+      "lag": -2,
+      "p_value": 0.0,
+      "effect_size": 0.1870348176970015
+    },
+    {
+      "source": "co2",
+      "target": "co2",
+      "lag": -4,
+      "p_value": 0.0,
+      "effect_size": 0.1816190031602512
+    },
+    {
+      "source": "co2",
+      "target": "co2",
+      "lag": -3,
+      "p_value": 0.0,
+      "effect_size": 0.179998997505281
+    },
+    {
+      "source": "tmin",
+      "target": "tmin",
+      "lag": -1,
+      "p_value": 0.0,
+      "effect_size": 0.17434871751319275
+    },
+    {
+      "source": "pdsi",
+      "target": "pdsi",
+      "lag": -2,
+      "p_value": 0.0,
+      "effect_size": 0.15862506365437393
+    },
+    {
+      "source": "tmax",
+      "target": "tmax",
+      "lag": -3,
+      "p_value": 0.0,
+      "effect_size": 0.1418598483305195
+    }
+  ]
+}
