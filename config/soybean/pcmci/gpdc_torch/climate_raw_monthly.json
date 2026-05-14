@@ -1,7 +1,7 @@
 {
   "name": "soybean_climate_raw_rv_gpdc_torch",
   "data": {
-    "path": "data/weekly/soybean_raw.csv",
+    "path": "data/monthly/soybean_raw.csv",
     "date_column": "date",
     "drop_columns": []
   },
