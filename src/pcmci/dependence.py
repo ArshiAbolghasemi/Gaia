@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import warnings
 from importlib import import_module
 from typing import TYPE_CHECKING
@@ -38,6 +39,7 @@ def build_dependence_test(config: DependenceConfig) -> CondIndTest:
 
 
 def _build_gpdc_torch(params: dict) -> CondIndTest:
+    gpdc_params = dict(params)
     try:
         module = import_module("tigramite.independence_tests.gpdc_torch")
     except ModuleNotFoundError as exc:
@@ -48,9 +50,21 @@ def _build_gpdc_torch(params: dict) -> CondIndTest:
         )
         raise ModuleNotFoundError(msg) from exc
 
+    _configure_gpdc_torch_runtime(gpdc_params)
     _suppress_gpytorch_training_input_warning()
     gpdc_torch = module.GPDCtorch
-    return gpdc_torch(**params)
+    return gpdc_torch(**gpdc_params)
+
+
+def _configure_gpdc_torch_runtime(params: dict) -> None:
+    torch_num_threads = params.pop("torch_num_threads", 1)
+    torch_num_interop_threads = params.pop("torch_num_interop_threads", 1)
+    with contextlib.suppress(ModuleNotFoundError):
+        torch = import_module("torch")
+        torch.set_num_threads(max(1, int(torch_num_threads)))
+        with contextlib.suppress(RuntimeError):
+            # PyTorch only allows changing inter-op threads before parallel work starts.
+            torch.set_num_interop_threads(max(1, int(torch_num_interop_threads)))
 
 
 def _suppress_gpytorch_training_input_warning() -> None:
