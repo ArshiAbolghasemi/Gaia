@@ -1,0 +1,26 @@
+Causal graph for wheat_climate_raw_gpdc_torch
+=============================================
+
+## Significant links at alpha = 0.05:
+
+    Variable prcp has 0 link(s):
+
+    Variable awnd has 0 link(s):
+
+    Variable tmin has 6 link(s):
+        (tmin -1): pval = 0.00000 | val =  0.612
+        (tmin -4): pval = 0.00000 | val =  0.600
+        (tmin -5): pval = 0.00000 | val =  0.561
+        (pdsi -1): pval = 0.00000 | val =  0.430
+        (tmax -1): pval = 0.00000 | val =  0.401
+        (pdsi -3): pval = 0.00000 | val =  0.389
+
+    Variable tmax has 1 link(s):
+        (tmin -5): pval = 0.00000 | val =  0.422
+
+    Variable co2 has 1 link(s):
+        (co2 -1): pval = 0.00000 | val =  0.557
+
+    Variable pdsi has 2 link(s):
+        (pdsi -1): pval = 0.00000 | val =  0.640
+        (prcp -1): pval = 0.00000 | val =  0.402
