@@ -100,10 +100,11 @@ def main() -> None:
             config = load_config(config_path)
         if (
             args.method is not None
+            and config is not None
             and config.dependence.method.lower() != args.method.lower()
         ):
             continue
-        if args.frequency is not None:
+        if args.frequency is not None and config is not None:
             frequency = infer_frequency_from_path(config.data.path)
             if frequency != args.frequency.lower():
                 continue
