@@ -86,7 +86,7 @@ Causal graph for wheat_climate_parcorr
     Variable spi_3m_very_dry_in_harvesting has 0 link(s):
 
     Variable spi_3m_extreme_dry_in_planting has 1 link(s):
-        (spi_1m_extreme_dry_in_harvesting -1): pval = 0.00000 | val =  0.665
+        (spi_1m_extreme_dry_in_harvesting -1): pval = 0.00000 | val =  0.672
 
     Variable spi_3m_extreme_dry_in_harvesting has 0 link(s):
 
@@ -102,7 +102,7 @@ Causal graph for wheat_climate_parcorr
     Variable pdsi_extreme_drought_in_planting has 0 link(s):
 
     Variable pdsi_extreme_drought_in_harvesting has 1 link(s):
-        (pdsi_extreme_drought_in_harvesting -1): pval = 0.00000 | val =  0.528
+        (pdsi_extreme_drought_in_harvesting -1): pval = 0.00000 | val =  0.548
 
     Variable pdsi_severe_drought_in_planting has 0 link(s):
 
@@ -112,5 +112,3 @@ Causal graph for wheat_climate_parcorr
     Variable co2_extreme_in_planting has 0 link(s):
 
     Variable co2_extreme_in_harvesting has 0 link(s):
-
-    Variable wheat_weekly_rv has 0 link(s):
