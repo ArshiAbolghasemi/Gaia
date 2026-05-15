@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from importlib import import_module
 from typing import Any, cast
 
 import faiss
@@ -175,17 +176,29 @@ class FAISSCMI(CondIndTest):
 
     def _log_runtime_configuration(self) -> None:
         gpu_count = _get_faiss_gpu_count()
+        torch_runtime = _get_torch_runtime()
+        selected_backend = "cuda" if self.res is not None else "cpu"
         logger.info(
-            "FAISSCMI runtime: use_gpu=%s, gpu_device=%d, gpu_resources=%s, "
-            "faiss_gpu_count=%s, standardize=%s, k=%d, sig_samples=%s",
+            "FAISSCMI runtime: selected_backend=%s, use_gpu=%s, gpu_device=%d, "
+            "gpu_resources=%s, faiss_gpu_count=%s, torch_cuda_available=%s, "
+            "torch_mps_available=%s, standardize=%s, k=%d, sig_samples=%s",
+            selected_backend,
             self.use_gpu,
             self.gpu_device,
             self.res is not None,
             gpu_count,
+            torch_runtime["cuda_available"],
+            torch_runtime["mps_available"],
             self.standardize,
             self.k,
             self.sig_samples,
         )
+        if torch_runtime["mps_available"]:
+            logger.info(
+                "FAISSCMI detected MPS support, but FAISS does not use MPS; "
+                "the backend remains %s.",
+                selected_backend,
+            )
         if self.use_gpu and self.res is None:
             logger.info(
                 "FAISSCMI requested GPU but FAISS GPU resources are unavailable; "
@@ -213,3 +226,23 @@ def _get_faiss_gpu_count() -> int | str:
         return int(get_num_gpus())
     except Exception:
         return "n/a"
+
+
+def _get_torch_runtime() -> dict[str, bool | str]:
+    try:
+        torch = import_module("torch")
+    except ModuleNotFoundError:
+        return {
+            "cuda_available": "n/a",
+            "mps_available": "n/a",
+        }
+
+    backends = getattr(torch, "backends", None)
+    mps_backend = getattr(backends, "mps", None)
+    mps_available = False
+    if mps_backend is not None and hasattr(mps_backend, "is_available"):
+        mps_available = bool(mps_backend.is_available())
+    return {
+        "cuda_available": bool(torch.cuda.is_available()),
+        "mps_available": mps_available,
+    }

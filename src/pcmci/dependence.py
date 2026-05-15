@@ -89,15 +89,12 @@ def _log_gpdc_torch_runtime(params: dict) -> None:
         torch = import_module("torch")
         cuda_available = bool(torch.cuda.is_available())
         device_count = int(torch.cuda.device_count()) if cuda_available else 0
-        backend = "cuda" if cuda_available else "cpu"
-        mps_available = False
-        mps_backend = getattr(torch.backends, "mps", None)
-        if mps_backend is not None and hasattr(mps_backend, "is_available"):
-            mps_available = bool(mps_backend.is_available())
+        mps_available = _torch_mps_available(torch)
+        backend = "cuda" if cuda_available else "mps" if mps_available else "cpu"
         logger.info(
-            "GPDCtorch runtime: backend=%s, cuda_available=%s, cuda_device_count=%d, "
-            "mps_available=%s, torch_num_threads=%d, torch_num_interop_threads=%d, "
-            "sig_samples=%s",
+            "GPDCtorch runtime: selected_backend=%s, cuda_available=%s, "
+            "cuda_device_count=%d, mps_available=%s, torch_num_threads=%d, "
+            "torch_num_interop_threads=%d, sig_samples=%s",
             backend,
             cuda_available,
             device_count,
@@ -106,6 +103,12 @@ def _log_gpdc_torch_runtime(params: dict) -> None:
             _safe_get_torch_interop_threads(torch),
             params.get("sig_samples"),
         )
+        if backend == "mps":
+            logger.info("GPDCtorch will use the MPS backend on Apple Silicon.")
+        elif backend == "cuda":
+            logger.info("GPDCtorch will use the CUDA backend.")
+        else:
+            logger.info("GPDCtorch will use the CPU backend.")
 
 
 def _safe_get_torch_interop_threads(torch: object) -> int | str:
@@ -115,3 +118,14 @@ def _safe_get_torch_interop_threads(torch: object) -> int | str:
     with contextlib.suppress(RuntimeError):
         return int(getter())
     return "n/a"
+
+
+def _torch_mps_available(torch: object) -> bool:
+    backends = getattr(torch, "backends", None)
+    mps_backend = getattr(backends, "mps", None)
+    if mps_backend is None:
+        return False
+    is_available = getattr(mps_backend, "is_available", None)
+    if is_available is None:
+        return False
+    return bool(is_available())
