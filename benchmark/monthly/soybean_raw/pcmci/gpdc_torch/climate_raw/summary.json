@@ -7,8 +7,7 @@
     "tmin",
     "tmax",
     "co2",
-    "pdsi",
-    "weekly_rv"
+    "pdsi"
   ],
   "dependence": {
     "method": "gpdc_torch",
@@ -30,15 +29,14 @@
   },
   "feature_selection": {
     "include_groups": [
-      "climate_raw",
-      "rv"
+      "climate_raw"
     ],
     "include_columns": [],
     "exclude_columns": []
   },
-  "output_directory": "/Users/arshia/Projects/Papers/FinancialAI/Gaia/benchmark/monthly/soybean_raw/pcmci/gpdc_torch/climate_raw_rv",
-  "output_name": "climate_raw_rv",
-  "significant_link_count": 15,
+  "output_directory": "/Users/arshia/Projects/Papers/FinancialAI/Gaia/benchmark/monthly/soybean_raw/pcmci/gpdc_torch/climate_raw",
+  "output_name": "climate_raw",
+  "significant_link_count": 14,
   "displayed_link_count": 10,
   "top_links": [
     {
@@ -54,13 +52,6 @@
       "lag": -1,
       "p_value": 0.0,
       "effect_size": 0.6334681388458231
-    },
-    {
-      "source": "weekly_rv",
-      "target": "weekly_rv",
-      "lag": -1,
-      "p_value": 0.0,
-      "effect_size": 0.5451731923876585
     },
     {
       "source": "prcp",
@@ -110,6 +101,13 @@
       "lag": -1,
       "p_value": 0.0,
       "effect_size": 0.33146240427649953
+    },
+    {
+      "source": "awnd",
+      "target": "co2",
+      "lag": -1,
+      "p_value": 0.0,
+      "effect_size": 0.26830008401740807
     }
   ]
 }
