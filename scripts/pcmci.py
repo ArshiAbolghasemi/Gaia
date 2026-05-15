@@ -6,6 +6,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -14,6 +15,9 @@ if str(ROOT) not in sys.path:
 from src.config.load import load_config
 from src.log.config import configure_logging
 from src.pcmci.runner import run_pcmci, save_outputs
+
+if TYPE_CHECKING:
+    from src.config.model import RunConfig
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def execute_config(config_path: Path, config=None) -> None:
+def execute_config(config_path: Path, config: RunConfig | None = None) -> None:
     logger.info("Executing config: %s", config_path)
     if config is None:
         config = load_config(config_path)
@@ -94,7 +98,10 @@ def main() -> None:
         config = None
         if args.method is not None or args.frequency is not None:
             config = load_config(config_path)
-        if args.method is not None and config.dependence.method.lower() != args.method.lower():
+        if (
+            args.method is not None
+            and config.dependence.method.lower() != args.method.lower()
+        ):
             continue
         if args.frequency is not None:
             frequency = infer_frequency_from_path(config.data.path)
