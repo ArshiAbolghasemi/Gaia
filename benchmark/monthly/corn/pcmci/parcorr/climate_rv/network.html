@@ -1,0 +1,278 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"group": "SSTA", "id": 0, "label": "ssta_elino", "shape": "dot", "size": 18, "title": "ssta_elino"}, {"group": "SSTA", "id": 1, "label": "ssta_lanina", "shape": "dot", "size": 18, "title": "ssta_lanina"}, {"group": "SOI", "id": 2, "label": "SOI_index", "shape": "dot", "size": 18, "title": "SOI_index"}, {"group": "OTHER", "id": 3, "label": "NAO_index", "shape": "dot", "size": 18, "title": "NAO_index"}, {"group": "OTHER", "id": 4, "label": "tmax_hot_in_planting", "shape": "dot", "size": 18, "title": "tmax_hot_in_planting"}, {"group": "OTHER", "id": 5, "label": "tmax_hot_in_harvesting", "shape": "dot", "size": 18, "title": "tmax_hot_in_harvesting"}, {"group": "OTHER", "id": 6, "label": "tmax_very_hot_in_planting", "shape": "dot", "size": 18, "title": "tmax_very_hot_in_planting"}, {"group": "OTHER", "id": 7, "label": "tmax_very_hot_in_harvesting", "shape": "dot", "size": 18, "title": "tmax_very_hot_in_harvesting"}, {"group": "OTHER", "id": 8, "label": "tmin_cold_in_planting", "shape": "dot", "size": 18, "title": "tmin_cold_in_planting"}, {"group": "OTHER", "id": 9, "label": "tmin_cold_in_harvesting", "shape": "dot", "size": 18, "title": "tmin_cold_in_harvesting"}, {"group": "OTHER", "id": 10, "label": "tmin_very_cold_in_planting", "shape": "dot", "size": 18, "title": "tmin_very_cold_in_planting"}, {"group": "OTHER", "id": 11, "label": "tmin_very_cold_in_harvesting", "shape": "dot", "size": 18, "title": "tmin_very_cold_in_harvesting"}, {"group": "OTHER", "id": 12, "label": "awnd_moderate_high_wind_in_planting", "shape": "dot", "size": 18, "title": "awnd_moderate_high_wind_in_planting"}, {"group": "OTHER", "id": 13, "label": "awnd_moderate_high_wind_in_harvesting", "shape": "dot", "size": 18, "title": "awnd_moderate_high_wind_in_harvesting"}, {"group": "OTHER", "id": 14, "label": "awnd_extreme_high_wind_in_planting", "shape": "dot", "size": 18, "title": "awnd_extreme_high_wind_in_planting"}, {"group": "OTHER", "id": 15, "label": "awnd_extreme_high_wind_in_harvesting", "shape": "dot", "size": 18, "title": "awnd_extreme_high_wind_in_harvesting"}, {"group": "OTHER", "id": 16, "label": "spi_7d_very_wet_in_planting", "shape": "dot", "size": 18, "title": "spi_7d_very_wet_in_planting"}, {"group": "OTHER", "id": 17, "label": "spi_7d_very_wet_in_harvesting", "shape": "dot", "size": 18, "title": "spi_7d_very_wet_in_harvesting"}, {"group": "OTHER", "id": 18, "label": "spi_7d_extreme_wet_in_planting", "shape": "dot", "size": 18, "title": "spi_7d_extreme_wet_in_planting"}, {"group": "OTHER", "id": 19, "label": "spi_7d_extreme_wet_in_harvesting", "shape": "dot", "size": 18, "title": "spi_7d_extreme_wet_in_harvesting"}, {"group": "OTHER", "id": 20, "label": "spi_7d_very_dry_in_planting", "shape": "dot", "size": 18, "title": "spi_7d_very_dry_in_planting"}, {"group": "OTHER", "id": 21, "label": "spi_7d_very_dry_in_harvesting", "shape": "dot", "size": 18, "title": "spi_7d_very_dry_in_harvesting"}, {"group": "OTHER", "id": 22, "label": "spi_7d_extreme_dry_in_planting", "shape": "dot", "size": 18, "title": "spi_7d_extreme_dry_in_planting"}, {"group": "OTHER", "id": 23, "label": "spi_7d_extreme_dry_in_harvesting", "shape": "dot", "size": 18, "title": "spi_7d_extreme_dry_in_harvesting"}, {"group": "OTHER", "id": 24, "label": "spi_1m_very_wet_in_planting", "shape": "dot", "size": 18, "title": "spi_1m_very_wet_in_planting"}, {"group": "OTHER", "id": 25, "label": "spi_1m_very_wet_in_harvesting", "shape": "dot", "size": 18, "title": "spi_1m_very_wet_in_harvesting"}, {"group": "OTHER", "id": 26, "label": "spi_1m_extreme_wet_in_planting", "shape": "dot", "size": 18, "title": "spi_1m_extreme_wet_in_planting"}, {"group": "OTHER", "id": 27, "label": "spi_1m_extreme_wet_in_harvesting", "shape": "dot", "size": 18, "title": "spi_1m_extreme_wet_in_harvesting"}, {"group": "OTHER", "id": 28, "label": "spi_1m_very_dry_in_planting", "shape": "dot", "size": 18, "title": "spi_1m_very_dry_in_planting"}, {"group": "OTHER", "id": 29, "label": "spi_1m_very_dry_in_harvesting", "shape": "dot", "size": 18, "title": "spi_1m_very_dry_in_harvesting"}, {"group": "OTHER", "id": 30, "label": "spi_1m_extreme_dry_in_planting", "shape": "dot", "size": 18, "title": "spi_1m_extreme_dry_in_planting"}, {"group": "OTHER", "id": 31, "label": "spi_1m_extreme_dry_in_harvesting", "shape": "dot", "size": 18, "title": "spi_1m_extreme_dry_in_harvesting"}, {"group": "OTHER", "id": 32, "label": "spi_3m_very_wet_in_planting", "shape": "dot", "size": 18, "title": "spi_3m_very_wet_in_planting"}, {"group": "OTHER", "id": 33, "label": "spi_3m_very_wet_in_harvesting", "shape": "dot", "size": 18, "title": "spi_3m_very_wet_in_harvesting"}, {"group": "OTHER", "id": 34, "label": "spi_3m_extreme_wet_in_planting", "shape": "dot", "size": 18, "title": "spi_3m_extreme_wet_in_planting"}, {"group": "OTHER", "id": 35, "label": "spi_3m_extreme_wet_in_harvesting", "shape": "dot", "size": 18, "title": "spi_3m_extreme_wet_in_harvesting"}, {"group": "OTHER", "id": 36, "label": "spi_3m_very_dry_in_planting", "shape": "dot", "size": 18, "title": "spi_3m_very_dry_in_planting"}, {"group": "OTHER", "id": 37, "label": "spi_3m_very_dry_in_harvesting", "shape": "dot", "size": 18, "title": "spi_3m_very_dry_in_harvesting"}, {"group": "OTHER", "id": 38, "label": "spi_3m_extreme_dry_in_planting", "shape": "dot", "size": 18, "title": "spi_3m_extreme_dry_in_planting"}, {"group": "OTHER", "id": 39, "label": "spi_3m_extreme_dry_in_harvesting", "shape": "dot", "size": 18, "title": "spi_3m_extreme_dry_in_harvesting"}, {"group": "OTHER", "id": 40, "label": "pdsi_very_wet_in_planting", "shape": "dot", "size": 18, "title": "pdsi_very_wet_in_planting"}, {"group": "OTHER", "id": 41, "label": "pdsi_very_wet_in_harvesting", "shape": "dot", "size": 18, "title": "pdsi_very_wet_in_harvesting"}, {"group": "OTHER", "id": 42, "label": "pdsi_extreme_wet_in_planting", "shape": "dot", "size": 18, "title": "pdsi_extreme_wet_in_planting"}, {"group": "OTHER", "id": 43, "label": "pdsi_extreme_wet_in_harvesting", "shape": "dot", "size": 18, "title": "pdsi_extreme_wet_in_harvesting"}, {"group": "OTHER", "id": 44, "label": "pdsi_extreme_drought_in_planting", "shape": "dot", "size": 18, "title": "pdsi_extreme_drought_in_planting"}, {"group": "OTHER", "id": 45, "label": "pdsi_extreme_drought_in_harvesting", "shape": "dot", "size": 18, "title": "pdsi_extreme_drought_in_harvesting"}, {"group": "OTHER", "id": 46, "label": "pdsi_severe_drought_in_planting", "shape": "dot", "size": 18, "title": "pdsi_severe_drought_in_planting"}, {"group": "OTHER", "id": 47, "label": "pdsi_severe_drought_in_harvesting", "shape": "dot", "size": 18, "title": "pdsi_severe_drought_in_harvesting"}, {"group": "OTHER", "id": 48, "label": "co2_extreme_in_planting", "shape": "dot", "size": 18, "title": "co2_extreme_in_planting"}, {"group": "OTHER", "id": 49, "label": "co2_extreme_in_harvesting", "shape": "dot", "size": 18, "title": "co2_extreme_in_harvesting"}, {"group": "CORN", "id": 50, "label": "corn_weekly_rv", "shape": "dot", "size": 18, "title": "corn_weekly_rv"}, {"color": "#97c2fc", "fixed": {"x": true, "y": true}, "id": "LEG", "label": "Legend", "physics": false, "shape": "box", "x": -800, "y": -600}, {"color": "#97c2fc", "fixed": {"x": true, "y": true}, "id": "L1", "label": "--\u003e", "physics": false, "shape": "ellipse", "x": -830, "y": -540}, {"color": "#97c2fc", "fixed": {"x": true, "y": true}, "id": "R1", "label": "R1", "physics": false, "shape": "dot", "size": 1, "x": -680, "y": -540}, {"color": "#97c2fc", "fixed": {"x": true, "y": true}, "id": "L2", "label": "o-\u003e", "physics": false, "shape": "ellipse", "x": -830, "y": -480}, {"color": "#97c2fc", "fixed": {"x": true, "y": true}, "id": "R2", "label": "R2", "physics": false, "shape": "dot", "size": 1, "x": -680, "y": -480}, {"color": "#97c2fc", "fixed": {"x": true, "y": true}, "id": "L3", "label": "\u003c-\u003e", "physics": false, "shape": "ellipse", "x": -830, "y": -420}, {"color": "#97c2fc", "fixed": {"x": true, "y": true}, "id": "R3", "label": "R3", "physics": false, "shape": "dot", "size": 1, "x": -680, "y": -420}]);
+                  edges = new vis.DataSet([{"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 0, "label": "tau=1", "lag": 1, "physics": true, "pval": 5.0615946660706946e-27, "smooth": {"roundness": 0.15, "type": "curvedCW"}, "source_label": "ssta_elino", "stat": 0.7461407120139478, "target_label": "ssta_elino", "title": "\u003cb\u003essta_elino --\u003e ssta_elino\u003c/b\u003e\u003cbr\u003elag tau = 1\u003cbr\u003estat = 0.7461\u003cbr\u003ep = 5.062e-27", "to": 0, "width": 4.476844272083687}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 1, "label": "tau=1", "lag": 1, "physics": true, "pval": 1.718313358094769e-22, "smooth": {"roundness": 0.15, "type": "curvedCW"}, "source_label": "ssta_lanina", "stat": 0.6995508837825507, "target_label": "ssta_lanina", "title": "\u003cb\u003essta_lanina --\u003e ssta_lanina\u003c/b\u003e\u003cbr\u003elag tau = 1\u003cbr\u003estat = 0.6996\u003cbr\u003ep = 1.718e-22", "to": 1, "width": 4.197305302695304}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 2, "label": "tau=1", "lag": 1, "physics": true, "pval": 6.82108759139241e-21, "smooth": {"roundness": 0.15, "type": "curvedCW"}, "source_label": "SOI_index", "stat": 0.6871631841913248, "target_label": "SOI_index", "title": "\u003cb\u003eSOI_index --\u003e SOI_index\u003c/b\u003e\u003cbr\u003elag tau = 1\u003cbr\u003estat = 0.6872\u003cbr\u003ep = 6.821e-21", "to": 2, "width": 4.122979105147949}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 3, "label": "tau=1", "lag": 1, "physics": true, "pval": 4.429624101545715e-17, "smooth": {"roundness": 0.15, "type": "curvedCW"}, "source_label": "NAO_index", "stat": 0.6517289346220285, "target_label": "NAO_index", "title": "\u003cb\u003eNAO_index --\u003e NAO_index\u003c/b\u003e\u003cbr\u003elag tau = 1\u003cbr\u003estat = 0.6517\u003cbr\u003ep = 4.43e-17", "to": 3, "width": 3.910373607732171}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 9, "label": "tau=4", "lag": 4, "physics": true, "pval": 1.693971805581773e-10, "smooth": {"roundness": 0.30000000000000004, "type": "curvedCW"}, "source_label": "tmin_cold_in_harvesting", "stat": 0.5284115204596044, "target_label": "spi_1m_extreme_dry_in_planting", "title": "\u003cb\u003etmin_cold_in_harvesting --\u003e spi_1m_extreme_dry_in_planting\u003c/b\u003e\u003cbr\u003elag tau = 4\u003cbr\u003estat = 0.5284\u003cbr\u003ep = 1.694e-10", "to": 30, "width": 3.170469122757626}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 11, "label": "tau=1", "lag": 1, "physics": true, "pval": 2.8904150713519854e-11, "smooth": {"roundness": 0.15, "type": "curvedCW"}, "source_label": "tmin_very_cold_in_harvesting", "stat": 0.5485416500523113, "target_label": "awnd_moderate_high_wind_in_harvesting", "title": "\u003cb\u003etmin_very_cold_in_harvesting --\u003e awnd_moderate_high_wind_in_harvesting\u003c/b\u003e\u003cbr\u003elag tau = 1\u003cbr\u003estat = 0.5485\u003cbr\u003ep = 2.89e-11", "to": 13, "width": 3.2912499003138675}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 18, "label": "tau=1", "lag": 1, "physics": true, "pval": 6.710255241751127e-13, "smooth": {"roundness": 0.15, "type": "curvedCW"}, "source_label": "spi_7d_extreme_wet_in_planting", "stat": 0.5847190529332311, "target_label": "spi_1m_extreme_wet_in_planting", "title": "\u003cb\u003espi_7d_extreme_wet_in_planting --\u003e spi_1m_extreme_wet_in_planting\u003c/b\u003e\u003cbr\u003elag tau = 1\u003cbr\u003estat = 0.5847\u003cbr\u003ep = 6.71e-13", "to": 26, "width": 3.5083143175993867}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 45, "label": "tau=3", "lag": 3, "physics": true, "pval": 7.22156597666985e-15, "smooth": {"roundness": 0.25, "type": "curvedCW"}, "source_label": "pdsi_extreme_drought_in_harvesting", "stat": -0.6026280236992873, "target_label": "pdsi_severe_drought_in_planting", "title": "\u003cb\u003epdsi_extreme_drought_in_harvesting --\u003e pdsi_severe_drought_in_planting\u003c/b\u003e\u003cbr\u003elag tau = 3\u003cbr\u003estat = -0.6026\u003cbr\u003ep = 7.222e-15", "to": 46, "width": 3.6157681421957237}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 45, "label": "tau=4", "lag": 4, "physics": true, "pval": 2.2437825537016314e-11, "smooth": {"roundness": 0.30000000000000004, "type": "curvedCW"}, "source_label": "pdsi_extreme_drought_in_harvesting", "stat": 0.5441681918514116, "target_label": "pdsi_severe_drought_in_planting", "title": "\u003cb\u003epdsi_extreme_drought_in_harvesting --\u003e pdsi_severe_drought_in_planting\u003c/b\u003e\u003cbr\u003elag tau = 4\u003cbr\u003estat = 0.5442\u003cbr\u003ep = 2.244e-11", "to": 46, "width": 3.26500915110847}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "etype": "--\u003e", "from": 47, "label": "tau=1", "lag": 1, "physics": true, "pval": 2.675608002855883e-11, "smooth": {"roundness": 0.15, "type": "curvedCW"}, "source_label": "pdsi_severe_drought_in_harvesting", "stat": 0.548641279407643, "target_label": "pdsi_severe_drought_in_harvesting", "title": "\u003cb\u003epdsi_severe_drought_in_harvesting --\u003e pdsi_severe_drought_in_harvesting\u003c/b\u003e\u003cbr\u003elag tau = 1\u003cbr\u003estat = 0.5486\u003cbr\u003ep = 2.676e-11", "to": 47, "width": 3.2918476764458577}, {"arrows": {"to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#333333"}, "dashes": false, "from": "L1", "label": "--\u003e", "physics": false, "to": "R1"}, {"arrows": {"from": {"enabled": true, "type": "circle"}, "to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#d35400"}, "dashes": true, "from": "L2", "label": "o-\u003e", "physics": false, "to": "R2"}, {"arrows": {"from": {"enabled": true, "type": "arrow"}, "to": {"enabled": true, "type": "arrow"}}, "color": {"color": "#1f77b4"}, "dashes": false, "from": "L3", "label": "\u003c-\u003e", "physics": false, "to": "R3"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics",
+            "layout",
+            "interaction"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.25,
+            "damping": 0.9,
+            "gravitationalConstant": -9000,
+            "springConstant": 0.02,
+            "springLength": 220
+        },
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    
+<style>
+  #infoPanel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: min(34%, 520px);
+    max-height: 90vh;
+    overflow: auto;
+    padding: 14px 16px;
+    background: #ffffff;
+    color: #333333;
+    border: 1px solid #dddddd;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    display: none;
+    z-index: 1000;
+  }
+  #infoPanel h3 { margin: 0 0 10px 0; font-size: 18px; }
+  #infoPanel .muted { color: #666666; font-size: 12px; }
+  #infoPanel ul { margin: 8px 0 0 18px; padding: 0; }
+  #infoPanel li { margin: 4px 0; }
+</style>
+<div id="infoPanel">
+  <h3>Node causes</h3>
+  <div class="muted">Click a node to list all causes (parents across lags).</div>
+  <hr/>
+  <div><b>Selected:</b> <span id="nodeName">-</span></div>
+  <div id="parentsList" style="margin-top:8px;"></div>
+</div>
+<script type="text/javascript">
+(function() {
+  const panelConfig = {"title": "Network view for corn_climate_rv_monthly_parcorr"};
+  function fmtP(p) {
+    if (typeof p !== "number" || !isFinite(p)) return String(p);
+    if (p === 0) return "0";
+    return p < 1e-3 ? p.toExponential(2) : p.toFixed(4);
+  }
+
+  function renderParents(nodeId) {
+    const node = nodes.get(nodeId);
+    if (!node) return;
+
+    const causes = [];
+    const edgeData = edges.get();
+    for (let index = 0; index < edgeData.length; index += 1) {
+      const edge = edgeData[index];
+      const edgeType = (edge.etype || "").trim();
+      if (!edgeType) continue;
+      const isDirectedIn =
+        (edgeType === "-->" || edgeType === "o->") && edge.to === nodeId;
+      const isBidirected =
+        edgeType === "<->" && (edge.to === nodeId || edge.from === nodeId);
+      if (!isDirectedIn && !isBidirected) continue;
+
+      const parentId = edge.to === nodeId ? edge.from : edge.to;
+      const parentNode = nodes.get(parentId);
+      causes.push({
+        parentName: parentNode ? parentNode.label : String(parentId),
+        edgeType,
+        lag: edge.lag,
+        stat: edge.stat,
+        pval: edge.pval,
+      });
+    }
+
+    causes.sort((left, right) => {
+      if (left.lag !== right.lag) return left.lag - right.lag;
+      return Math.abs(right.stat) - Math.abs(left.stat);
+    });
+
+    const listHtml = causes.length
+      ? "<ul>" + causes.map((cause) =>
+          "<li><b>" + cause.parentName + "</b> " + cause.edgeType +
+          " <b>" + node.label + "</b> - tau=" + cause.lag +
+          ", stat=" +
+          (typeof cause.stat === "number" ? cause.stat.toFixed(4) : cause.stat) +
+          ", p=" + fmtP(cause.pval) + "</li>"
+        ).join("") + "</ul>"
+      : "<em>No causes found for this node at current settings.</em>";
+
+    document.getElementById("nodeName").textContent = node.label;
+    document.getElementById("parentsList").innerHTML = listHtml;
+    document.getElementById("infoPanel").style.display = "block";
+    document.title = panelConfig.title;
+  }
+
+  network.on("selectNode", (params) => {
+    if (params.nodes && params.nodes.length > 0) {
+      renderParents(params.nodes[0]);
+    }
+  });
+  network.on("deselectNode", () => {
+    document.getElementById("infoPanel").style.display = "none";
+  });
+})();
+</script>
+
+</body>
+</html>
