@@ -239,12 +239,14 @@ def save_outputs(
         output_paths["ts_graph_plot"] = ts_graph_plot_path
 
     if config.output.save_networkx_plot:
-        network_plot_path = output_dir / "networkx.png"
-        logger.info("Saving networkx plot: %s", network_plot_path)
+        network_plot_path = output_dir / "network.html"
+        logger.info("Saving interactive graph plot: %s", network_plot_path)
         plot_network_graph(
-            top_links,
+            filtered_pcmci_results,
+            run_result.selected_columns,
             network_plot_path,
             title=f"Network view for {config.name}",
+            alpha_level=config.pcmci.alpha_level,
         )
         output_paths["networkx_plot"] = network_plot_path
 
