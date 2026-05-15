@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, cast
 
 import faiss
 import numpy as np
 from scipy.special import digamma
 from tigramite.independence_tests.independence_tests_base import CondIndTest
+
+logger = logging.getLogger(__name__)
 
 
 class FAISSCMI(CondIndTest):
@@ -44,9 +47,11 @@ class FAISSCMI(CondIndTest):
         self.two_sided = False
         self.residual_based = False
         self.recycle_residuals = False
+        self._backend_logged = False
         self.res = self._build_gpu_resources() if use_gpu else None
 
         CondIndTest.__init__(self, significance=significance, **kwargs)
+        self._log_runtime_configuration()
 
     def _build_gpu_resources(self) -> Any | None:
         standard_gpu_resources = getattr(faiss, "StandardGpuResources", None)
@@ -61,11 +66,16 @@ class FAISSCMI(CondIndTest):
         cpu_index = faiss.IndexFlatL2(dim)
         index_cpu_to_gpu = getattr(faiss, "index_cpu_to_gpu", None)
         if self.res is None or index_cpu_to_gpu is None:
+            self._log_backend_once(cpu_index)
             return cpu_index
         try:
-            return cast("Any", index_cpu_to_gpu)(self.res, self.gpu_device, cpu_index)
+            index = cast("Any", index_cpu_to_gpu)(self.res, self.gpu_device, cpu_index)
+            self._log_backend_once(index)
         except Exception:
+            self._log_backend_once(cpu_index)
             return cpu_index
+        else:
+            return index
 
     def _prepare_array(self, array: np.ndarray) -> np.ndarray:
         prepared = np.asarray(array, dtype=np.float64).copy()
@@ -162,3 +172,44 @@ class FAISSCMI(CondIndTest):
         if return_null_dist:
             return pval, null_dist
         return pval
+
+    def _log_runtime_configuration(self) -> None:
+        gpu_count = _get_faiss_gpu_count()
+        logger.info(
+            "FAISSCMI runtime: use_gpu=%s, gpu_device=%d, gpu_resources=%s, "
+            "faiss_gpu_count=%s, standardize=%s, k=%d, sig_samples=%s",
+            self.use_gpu,
+            self.gpu_device,
+            self.res is not None,
+            gpu_count,
+            self.standardize,
+            self.k,
+            self.sig_samples,
+        )
+        if self.use_gpu and self.res is None:
+            logger.info(
+                "FAISSCMI requested GPU but FAISS GPU resources are unavailable; "
+                "falling back to CPU indexes."
+            )
+
+    def _log_backend_once(self, index: Any) -> None:
+        if self._backend_logged:
+            return
+        self._backend_logged = True
+        index_type = type(index).__name__
+        using_gpu_backend = "gpu" in index_type.lower()
+        logger.info(
+            "FAISSCMI search backend: backend=%s, index_type=%s",
+            "gpu" if using_gpu_backend else "cpu",
+            index_type,
+        )
+
+
+def _get_faiss_gpu_count() -> int | str:
+    get_num_gpus = getattr(faiss, "get_num_gpus", None)
+    if get_num_gpus is None:
+        return "n/a"
+    try:
+        return int(get_num_gpus())
+    except Exception:
+        return "n/a"

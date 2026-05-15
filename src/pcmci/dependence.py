@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import warnings
 from importlib import import_module
 from typing import TYPE_CHECKING
@@ -15,6 +16,8 @@ if TYPE_CHECKING:
     from tigramite.independence_tests.independence_tests_base import CondIndTest
 
     from src.config.model import DependenceConfig
+
+logger = logging.getLogger(__name__)
 
 
 def build_dependence_test(config: DependenceConfig) -> CondIndTest:
@@ -52,6 +55,7 @@ def _build_gpdc_torch(params: dict) -> CondIndTest:
 
     _configure_gpdc_torch_runtime(gpdc_params)
     _suppress_gpytorch_training_input_warning()
+    _log_gpdc_torch_runtime(gpdc_params)
     gpdc_torch = module.GPDCtorch
     return gpdc_torch(**gpdc_params)
 
@@ -78,3 +82,36 @@ def _suppress_gpytorch_training_input_warning() -> None:
         message=r"The input matches the stored training data\..*",
         category=gpytorch_warnings.GPInputWarning,
     )
+
+
+def _log_gpdc_torch_runtime(params: dict) -> None:
+    with contextlib.suppress(ModuleNotFoundError):
+        torch = import_module("torch")
+        cuda_available = bool(torch.cuda.is_available())
+        device_count = int(torch.cuda.device_count()) if cuda_available else 0
+        backend = "cuda" if cuda_available else "cpu"
+        mps_available = False
+        mps_backend = getattr(torch.backends, "mps", None)
+        if mps_backend is not None and hasattr(mps_backend, "is_available"):
+            mps_available = bool(mps_backend.is_available())
+        logger.info(
+            "GPDCtorch runtime: backend=%s, cuda_available=%s, cuda_device_count=%d, "
+            "mps_available=%s, torch_num_threads=%d, torch_num_interop_threads=%d, "
+            "sig_samples=%s",
+            backend,
+            cuda_available,
+            device_count,
+            mps_available,
+            torch.get_num_threads(),
+            _safe_get_torch_interop_threads(torch),
+            params.get("sig_samples"),
+        )
+
+
+def _safe_get_torch_interop_threads(torch: object) -> int | str:
+    getter = getattr(torch, "get_num_interop_threads", None)
+    if getter is None:
+        return "n/a"
+    with contextlib.suppress(RuntimeError):
+        return int(getter())
+    return "n/a"
