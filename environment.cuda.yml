@@ -1,0 +1,23 @@
+name: gaia-cuda
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pytorch>=2.8.0
+  - pytorch-cuda
+  - faiss-gpu
+  - pip:
+      - dcor>=0.6
+      - dvc[s3]>=3.67.1
+      - gpytorch>=1.14
+      - jupyterlab>=4.5.7
+      - matplotlib>=3.10.0
+      - networkx>=3.4.2
+      - numpy>=2.2.0
+      - pandas>=2.2.3
+      - pyvis>=0.3.2
+      - ruff>=0.15.12
+      - tigramite>=5.2.7.0
