@@ -60,6 +60,17 @@ class FAISSCMI(CondIndTest):
         CondIndTest.__init__(self, significance=significance, **kwargs)
         self._log_runtime_configuration()
 
+    def __getstate__(self) -> dict[str, Any]:
+        state = self.__dict__.copy()
+        # FAISS GPU resources are backed by a SWIG pointer and cannot be pickled.
+        state["res"] = None
+        return state
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        self.__dict__.update(state)
+        self.res = self._build_gpu_resources() if self.use_gpu else None
+        self._backend_logged = False
+
     def _build_gpu_resources(self) -> Any | None:
         standard_gpu_resources = getattr(faiss, "StandardGpuResources", None)
         if standard_gpu_resources is None:
