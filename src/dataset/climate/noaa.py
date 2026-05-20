@@ -30,9 +30,7 @@ def _load_tokens() -> list[str]:
     raise ValueError(msg)
 
 
-DATA_TYPES = [
-    "EVAP"
-]
+DATA_TYPES = ["EVAP"]
 
 TOKENS = _load_tokens()
 
