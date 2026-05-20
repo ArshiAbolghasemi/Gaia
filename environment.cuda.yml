@@ -10,16 +10,4 @@ dependencies:
   - pytorch-cuda
   - faiss-gpu
   - pip:
-      - dcor>=0.6
-      - dvc[s3]>=3.67.1
-      - gpytorch>=1.14
-      - matplotlib>=3.10.0
-      - networkx>=3.4.2
-      - numpy>=2.2.0
-      - pandas>=2.2.3
-      - pyarrow>=14.0.0
-      - pyvis>=0.3.2
-      - requests>=2.32.0
-      - tenacity>=9.0.0
-      - tigramite>=5.2.7.0
-      - tqdm>=4.66.0
+      - -r requirements.txt
