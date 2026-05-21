@@ -16,6 +16,7 @@ import logging
 import sys
 import time
 from http import HTTPStatus
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -257,43 +258,35 @@ def flatten_columns(df: pd.DataFrame) -> pd.DataFrame:
 def build_aggregates(
     daily_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    aggs = {
-        "soil_moisture_0_7cm_m3m3": ["mean", "min", "max"],
-        "cloud_cover_mean_pct": ["mean"],
-        "cloud_cover_max_pct": ["max"],
-        "cloud_cover_min_pct": ["min"],
-        "relative_humidity_mean_pct": ["mean"],
-        "relative_humidity_max_pct": ["max"],
-        "relative_humidity_min_pct": ["min"],
-    }
+    mean_features = [
+        "soil_moisture_0_7cm_m3m3",
+        "cloud_cover_mean_pct",
+        "relative_humidity_mean_pct",
+    ]
+    state_daily = (
+        daily_df.groupby(["state", "date"], observed=True)[mean_features]
+        .mean()
+        .reset_index()
+    )
     column_renames = {
-        "soil_moisture_0_7cm_m3m3_mean": "soil_moisture_mean_m3m3",
-        "soil_moisture_0_7cm_m3m3_min": "soil_moisture_min_m3m3",
-        "soil_moisture_0_7cm_m3m3_max": "soil_moisture_max_m3m3",
-        "cloud_cover_mean_pct_mean": "cloud_cover_mean_pct",
-        "cloud_cover_max_pct_max": "cloud_cover_max_pct",
-        "cloud_cover_min_pct_min": "cloud_cover_min_pct",
-        "relative_humidity_mean_pct_mean": "humidity_mean_pct",
-        "relative_humidity_max_pct_max": "humidity_max_pct",
-        "relative_humidity_min_pct_min": "humidity_min_pct",
+        "soil_moisture_0_7cm_m3m3": "soil_moisture_mean_m3m3",
+        "cloud_cover_mean_pct": "cloud_cover_mean_pct",
+        "relative_humidity_mean_pct": "humidity_mean_pct",
     }
-    group_keys = ["location", "state", "latitude", "longitude"]
 
     logger.info("Building weekly aggregates...")
     weekly = (
-        daily_df.groupby([*group_keys, pd.Grouper(key="date", freq="W-MON")], observed=True)
-        .agg(aggs)
+        state_daily.groupby(
+            pd.Grouper(key="date", freq="W-MON"),
+            observed=True,
+        )[mean_features]
+        .mean()
         .reset_index()
     )
-    weekly = flatten_columns(weekly)
     weekly = weekly.rename(columns={"date": "week_start_monday", **column_renames})
     weekly["year"] = weekly["week_start_monday"].dt.year
     weekly["week"] = weekly["week_start_monday"].dt.isocalendar().week.astype(int)
     front_w = [
-        "location",
-        "state",
-        "latitude",
-        "longitude",
         "year",
         "week",
         "week_start_monday",
@@ -304,25 +297,15 @@ def build_aggregates(
     # Monthly
     logger.info("Building monthly aggregates...")
     monthly = (
-        daily_df.groupby([*group_keys, pd.Grouper(key="date", freq="MS")], observed=True)
-        .agg(aggs)
+        state_daily.groupby(pd.Grouper(key="date", freq="MS"), observed=True)[mean_features]
+        .mean()
         .reset_index()
     )
-    monthly = flatten_columns(monthly)
     monthly = monthly.rename(columns={"date": "month_start", **column_renames})
     monthly["year"] = monthly["month_start"].dt.year
     monthly["month"] = monthly["month_start"].dt.month
     monthly["month_name"] = monthly["month_start"].dt.strftime("%B")
-    front_m = [
-        "location",
-        "state",
-        "latitude",
-        "longitude",
-        "year",
-        "month",
-        "month_name",
-        "month_start",
-    ]
+    front_m = ["year", "month", "month_name", "month_start"]
     monthly = monthly[[*front_m, *[c for c in monthly.columns if c not in front_m]]]
     logger.info("Monthly rows: %d", len(monthly))
 
@@ -393,8 +376,9 @@ def main() -> None:
 
     weekly_df, monthly_df = build_aggregates(daily_df)
 
-    weekly_path = "us_climate_weekly.csv"
-    monthly_path = "us_climate_monthly.csv"
+    weekly_path = "data/climate/open-meteo_weekly.csv"
+    monthly_path = "data/climate/open_meteo_monthly.csv"
+    Path(weekly_path).parent.mkdir(parents=True, exist_ok=True)
 
     weekly_df.to_csv(weekly_path, index=False)
     logger.info("Saved  ->  %s  (%d rows)", weekly_path, len(weekly_df))
