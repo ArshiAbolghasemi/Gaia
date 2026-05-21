@@ -5,5 +5,12 @@ dependencies:
   - python>=3.10
   - pip
   - faiss-cpu>=1.12.0
+  - pandas>=2.2.3
+  - numpy>=2.2.0
+  - pyarrow>=14.0.0
+  - matplotlib>=3.10.0
+  - networkx>=3.4.2
+  - requests>=2.32.0
+  - tqdm>=4.66.0
   - pip:
       - -r requirements.txt
