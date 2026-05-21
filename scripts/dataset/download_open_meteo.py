@@ -6,26 +6,25 @@ Locations : 50 US states (one representative city each)
 Output    : us_climate_weekly.csv  +  us_climate_monthly.csv
 
 Requirements:
-    pip install requests pandas tqdm
+    pip install requests pandas tqdm tenacity
 
 Run:
     python download_us_climate.py
-
-Fix vs previous version:
-    - relative_humidity_2m / cloud_cover are HOURLY-only in Open-Meteo.
-      This script uses the correct daily equivalents:
-        soil_moisture_0_to_7cm_mean, cloud_cover_mean,
-        relative_humidity_2m_mean (Additional Daily Variables).
-    - Each location uses its own correct IANA timezone instead of a
-      single hardcoded "America/Chicago".
 """
 
 import logging
 import sys
 import time
+from http import HTTPStatus
 
 import pandas as pd
 import requests
+from tenacity import (
+    RetryCallState,
+    retry,
+    retry_if_exception,
+    stop_after_attempt,
+)
 
 try:
     from tqdm import tqdm
@@ -34,7 +33,9 @@ try:
 except ImportError:
     USE_TQDM = False
 
+# ---------------------------------------------------------------------------
 # Logger setup
+# ---------------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
@@ -46,8 +47,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# One representative city per US state (50 states + DC).
-# Tuple fields: name, state, lat, lon, iana_timezone
+# ---------------------------------------------------------------------------
+# Locations
+# ---------------------------------------------------------------------------
 US_LOCATIONS = [
     ("Birmingham", "AL", 33.52, -86.81, "America/Chicago"),
     ("Anchorage", "AK", 61.22, -149.90, "America/Anchorage"),
@@ -102,9 +104,10 @@ US_LOCATIONS = [
     ("Washington DC", "DC", 38.91, -77.04, "America/New_York"),
 ]
 
+# ---------------------------------------------------------------------------
 # API settings
+# ---------------------------------------------------------------------------
 API_URL = "https://archive-api.open-meteo.com/v1/archive"
-# Correct daily variable names (Additional Daily Variables section of Open-Meteo docs)
 DAILY_VARS = (
     "soil_moisture_0_to_7cm_mean,"
     "cloud_cover_mean,"
@@ -117,11 +120,103 @@ DAILY_VARS = (
 START_DATE = "2009-01-01"
 END_DATE = "2026-05-15"
 
+# ---------------------------------------------------------------------------
+# Retry helpers
+# ---------------------------------------------------------------------------
+RETRY_AFTER_DEFAULT = 60  # seconds to wait when Retry-After header is absent
+MAX_ATTEMPTS = 6  # total attempts (1 original + 5 retries)
+MAX_BACKOFF_SECONDS = 120
+TRANSIENT_STATUS_CODES = {
+    HTTPStatus.INTERNAL_SERVER_ERROR,
+    HTTPStatus.BAD_GATEWAY,
+    HTTPStatus.SERVICE_UNAVAILABLE,
+    HTTPStatus.GATEWAY_TIMEOUT,
+}
+
+
+class RateLimitError(Exception):
+    """Raised when the API returns HTTP 429, carrying the requested wait time."""
+
+    def __init__(self, wait: int) -> None:
+        super().__init__(f"Rate limited — retry after {wait}s")
+        self.wait = wait
+
+
+class TransientError(Exception):
+    """Raised on 5xx or network-level failures that are worth retrying."""
+
+
+def _is_retryable(exc: BaseException) -> bool:
+    return isinstance(exc, (RateLimitError, TransientError))
+
+
+def _before_sleep(retry_state: RetryCallState) -> None:
+    """Log the upcoming retry attempt and wait duration."""
+    exc = retry_state.outcome.exception()
+    wait = retry_state.next_action.sleep  # seconds tenacity will sleep
+    logger.warning(
+        "Retry %d/%d in %.0fs — %s",
+        retry_state.attempt_number,
+        MAX_ATTEMPTS - 1,
+        wait,
+        exc,
+    )
+
+
+def _wait_strategy(retry_state: RetryCallState) -> float:
+    """Return the next retry delay.
+
+    Use `Retry-After` from a `RateLimitError` when available; otherwise fall
+    back to exponential back-off capped at 120 seconds.
+    """
+    exc = retry_state.outcome.exception()
+    if isinstance(exc, RateLimitError):
+        return min(exc.wait, MAX_BACKOFF_SECONDS)
+    # Exponential: 2^attempt, capped at 120 s
+    return min(2**retry_state.attempt_number, MAX_BACKOFF_SECONDS)
+
+
+# ---------------------------------------------------------------------------
+# Core fetch with tenacity retry
+# ---------------------------------------------------------------------------
+@retry(
+    retry=retry_if_exception(_is_retryable),
+    wait=_wait_strategy,
+    stop=stop_after_attempt(MAX_ATTEMPTS),
+    before_sleep=_before_sleep,
+    reraise=True,
+)
+def _fetch_raw(params: dict) -> dict:
+    """Fetch daily payload data from Open-Meteo.
+
+    Raises:
+        RateLimitError: If the API responds with HTTP 429.
+        TransientError: If a network error or retryable 5xx occurs.
+        requests.HTTPError: If a non-retryable 4xx response occurs.
+
+    """
+    try:
+        resp = requests.get(API_URL, params=params, timeout=90)
+    except requests.exceptions.RequestException as exc:
+        message = f"Network error: {exc}"
+        raise TransientError(message) from exc
+
+    if resp.status_code == HTTPStatus.TOO_MANY_REQUESTS:
+        wait = int(resp.headers.get("Retry-After", RETRY_AFTER_DEFAULT))
+        raise RateLimitError(wait)
+
+    if resp.status_code in TRANSIENT_STATUS_CODES:
+        message = f"HTTP {resp.status_code}"
+        raise TransientError(message)
+
+    resp.raise_for_status()  # propagate any other 4xx immediately
+    return resp.json().get("daily", {})
+
 
 def fetch_location(
     name: str, state: str, lat: float, lon: float, timezone: str
 ) -> pd.DataFrame:
-    """Fetch daily data for one location from Open-Meteo Historical API."""
+    """Fetch daily climate data for one location, with automatic retries."""
     params = {
         "latitude": lat,
         "longitude": lon,
@@ -130,9 +225,7 @@ def fetch_location(
         "end_date": END_DATE,
         "timezone": timezone,
     }
-    resp = requests.get(API_URL, params=params, timeout=90)
-    resp.raise_for_status()
-    daily = resp.json().get("daily", {})
+    daily = _fetch_raw(params)
 
     frame = pd.DataFrame(
         {
@@ -153,8 +246,10 @@ def fetch_location(
     return frame
 
 
+# ---------------------------------------------------------------------------
+# Aggregation helpers
+# ---------------------------------------------------------------------------
 def flatten_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Flatten multi-level column index produced by groupby + agg."""
     df.columns = ["_".join(c).strip("_") if isinstance(c, tuple) else c for c in df.columns]
     return df
 
@@ -162,7 +257,6 @@ def flatten_columns(df: pd.DataFrame) -> pd.DataFrame:
 def build_aggregates(
     daily_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Return (weekly_df, monthly_df) from a combined daily DataFrame."""
     aggs = {
         "soil_moisture_0_7cm_m3m3": ["mean", "min", "max"],
         "cloud_cover_mean_pct": ["mean"],
@@ -172,7 +266,6 @@ def build_aggregates(
         "relative_humidity_max_pct": ["max"],
         "relative_humidity_min_pct": ["min"],
     }
-
     column_renames = {
         "soil_moisture_0_7cm_m3m3_mean": "soil_moisture_mean_m3m3",
         "soil_moisture_0_7cm_m3m3_min": "soil_moisture_min_m3m3",
@@ -184,10 +277,8 @@ def build_aggregates(
         "relative_humidity_max_pct_max": "humidity_max_pct",
         "relative_humidity_min_pct_min": "humidity_min_pct",
     }
-
     group_keys = ["location", "state", "latitude", "longitude"]
 
-    # Monday-anchored weekly rollup
     logger.info("Building weekly aggregates...")
     weekly = (
         daily_df.groupby([*group_keys, pd.Grouper(key="date", freq="W-MON")], observed=True)
@@ -238,6 +329,9 @@ def build_aggregates(
     return weekly, monthly
 
 
+# ---------------------------------------------------------------------------
+# Fetch loop
+# ---------------------------------------------------------------------------
 def _fetch_all_locations() -> list[pd.DataFrame]:
     frames: list[pd.DataFrame] = []
     total = len(US_LOCATIONS)
@@ -257,24 +351,33 @@ def _fetch_all_locations() -> list[pd.DataFrame]:
             location_frame = fetch_location(name, state, lat, lon, tz)
             frames.append(location_frame)
             logger.info(
-                "[%02d/%d] OK   %s  -  %d days", idx, total, label, len(location_frame)
+                "[%02d/%d] OK   %s  —  %d days",
+                idx,
+                total,
+                label,
+                len(location_frame),
             )
         except Exception:
-            logger.exception("[%02d/%d] FAIL  %s", idx, total, label)
+            logger.exception(
+                "[%02d/%d] FAIL  %s  (all retries exhausted)", idx, total, label
+            )
 
-        time.sleep(0.35)
+        time.sleep(0.35)  # polite inter-request pause
 
     return frames
 
 
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 def main() -> None:
-    """Fetch, aggregate, and save US climate data from Open-Meteo."""
     logger.info("=" * 60)
-    logger.info("  US Climate Downloader  -  Open-Meteo Historical API")
+    logger.info("  US Climate Downloader  —  Open-Meteo Historical API")
     logger.info("=" * 60)
     logger.info("Period    : %s  ->  %s", START_DATE, END_DATE)
     logger.info("Variables : Soil Moisture | Cloud Cover | Humidity (daily)")
     logger.info("Locations : %d  (50 states + DC)", len(US_LOCATIONS))
+    logger.info("Retries   : up to %d attempts per city (tenacity)", MAX_ATTEMPTS)
     logger.info("=" * 60)
 
     frames = _fetch_all_locations()
