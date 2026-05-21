@@ -17,11 +17,11 @@ FEATURE_GROUPS: dict[str, list[str]] = {
         "WTI_Index",
         "Broad_Dollar_index",
         "Stock_Uncertainty",
-        "epu_index",
     ],
     "news": [
         "Text_Climate_Anomaly",
         "frbsf_sentiment",
+        "epu_index",
     ],
     "climate": [
         "ssta_elino",
