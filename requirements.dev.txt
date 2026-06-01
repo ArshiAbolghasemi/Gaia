@@ -1,4 +1,0 @@
--r requirements.txt
-
-jupyterlab>=4.5.7
-ruff>=0.15.12
