@@ -121,28 +121,6 @@ The `FAISSCMI` class is implemented inline in `pcmci_cmi.ipynb` (not imported fr
 
 ---
 
-## Notable Results
-
-### SOI_index — Confounder Artifact
-
-The `weekly_rv(-1) → SOI_index` link (val ≈ 0.21) that appears in ParCorr and GPDCtorch runs is **spurious**. The true structure is a fork:
-
-```
-ssta_lanina(t-k) ──→ SOI_index(t)     [atmospheric lag 1-3 months]
-ssta_lanina(t-k) ──→ weekly_rv(t)     [market ENSO-forecast channel]
-```
-
-Without `ssta_lanina` in the conditioning set, PCMCI routes the shared SST signal as `rv(t-1) → SOI(t)`. Adding `ssta_lanina` to the conditioning set removes the link.
-
-### Crop-Specific ENSO Causality
-
-After adding `ssta_lanina`, ENSO causal links appear for corn but not wheat:
-
-- **Corn** — Midwest Corn Belt; July–August pollination window aligns with La Niña drought peak; consistent, repeatable signal across years.
-- **Wheat** — Mixed regional effects (La Niña helps Northern Plains, hurts Southern Plains); March–May critical window coincides with La Niña's decaying phase; global supply competition (Russia, Ukraine, Australia) overwhelms the US ENSO signal.
-
----
-
 ## Environment Setup
 
 ```bash
