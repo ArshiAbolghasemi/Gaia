@@ -12,7 +12,6 @@ Causal inference on U.S. crop return volatility (corn, soybean, wheat). Tests ca
 | `notebooks/pcmci_parcorr.ipynb` | PCMCI + ParCorr on all three crops at monthly frequency across three feature sets: `climate`, `climate_rv`, `macro_news_climate_rv`. Cross-crop comparison of significant causal links into realized volatility. |
 | `notebooks/pcmci_gpdc.ipynb` | PCMCI + GPDCtorch (GP regression + Distance Correlation) on all three crops. Detects nonlinear additive dependencies that ParCorr misses. Includes interpretation of notable links (SOI confounder, crop-specific ENSO asymmetry). |
 | `notebooks/pcmci_cmi.ipynb` | PCMCI + FAISS-CMI (Kraskov kNN conditional mutual information). Model-free: detects any statistical dependency. FAISSCMI class is implemented inline — no import from external source. |
-| `notebooks/causal_check_soi_rv_lanina.ipynb` | Diagnostic notebook for corn only. Isolates the causal triangle between `SOI_index`, `weekly_rv`, and `ssta_lanina`. Runs PCMCI with and without the ENSO confounder to verify the `weekly_rv → SOI` link is spurious. |
 
 ---
 
@@ -133,7 +132,7 @@ ssta_lanina(t-k) ──→ SOI_index(t)     [atmospheric lag 1-3 months]
 ssta_lanina(t-k) ──→ weekly_rv(t)     [market ENSO-forecast channel]
 ```
 
-Without `ssta_lanina` in the conditioning set, PCMCI routes the shared SST signal as `rv(t-1) → SOI(t)`. `causal_check_soi_rv_lanina.ipynb` runs this experiment explicitly: the link vanishes in Run B once `ssta_lanina` is added.
+Without `ssta_lanina` in the conditioning set, PCMCI routes the shared SST signal as `rv(t-1) → SOI(t)`. Adding `ssta_lanina` to the conditioning set removes the link.
 
 ### Crop-Specific ENSO Causality
 
