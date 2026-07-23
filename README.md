@@ -12,6 +12,9 @@ Causal inference on U.S. crop return volatility (corn, soybean, wheat). Tests ca
 | `notebooks/pcmci_parcorr.ipynb` | PCMCI + ParCorr on all three crops at monthly frequency across three feature sets: `climate`, `climate_rv`, `macro_news_climate_rv`. Cross-crop comparison of significant causal links into realized volatility. |
 | `notebooks/pcmci_gpdc.ipynb` | PCMCI + GPDCtorch (GP regression + Distance Correlation) on all three crops. Detects nonlinear additive dependencies that ParCorr misses. Includes interpretation of notable links (SOI confounder, crop-specific ENSO asymmetry). |
 | `notebooks/pcmci_cmi.ipynb` | PCMCI + FAISS-CMI (Kraskov kNN conditional mutual information). Model-free: detects any statistical dependency. FAISSCMI class is implemented inline — no import from external source. |
+| `notebooks/lpcmci_parcorr.ipynb` | LPCMCI + ParCorr. Drops PCMCI's causal-sufficiency assumption: learns a DPAG that distinguishes genuine directed causes (`-->`) from links that are merely confounded by an unobserved common driver (`<->`). Compares its verdicts against `pcmci_parcorr.ipynb`'s significant links into `weekly_rv`. |
+| `notebooks/lpcmci_gpdc.ipynb` | LPCMCI + GPDCtorch. Same confounder-awareness, paired with the nonlinear-additive CI test. Runs at a shorter `tau_max` and tighter search bounds than the ParCorr version — GP fits make LPCMCI's non-ancestral phase far more expensive. Compares against `pcmci_gpdc.ipynb`. |
+| `notebooks/lpcmci_cmi.ipynb` | LPCMCI + FAISS-CMI. Model-free CI test (FAISSCMI implemented inline, as in `pcmci_cmi.ipynb`) combined with confounder-awareness. Uses a reduced `sig_samples` for LPCMCI's own runs (the shuffle test multiplies cost across LPCMCI's many CI calls); the `pcmci_cmi.ipynb`-comparison baseline keeps the original `sig_samples=200`. |
 
 ---
 
@@ -106,18 +109,55 @@ The `FAISSCMI` class is implemented inline in `pcmci_cmi.ipynb` (not imported fr
 | `max_combinations` | 1 | Limits kNN fits per MCI link |
 | FAISS backend | CPU (Apple Silicon) / CUDA (Linux+NVIDIA) | MPS not supported by FAISS; falls back to CPU automatically |
 
+### LPCMCI — Latent-Confounder-Aware
+
+Gerhardus & Runge (2020). Drops PCMCI's causal-sufficiency assumption (no unobserved confounders).
+Learns a time series DPAG with edge types instead of a DAG: `-->` (candidate cause, not
+reverse-causal), `<->` (confounded — not causal), and `o->`/`o-o` (orientation undetermined).
+Implemented as three sibling notebooks — `lpcmci_parcorr.ipynb`, `lpcmci_gpdc.ipynb`,
+`lpcmci_cmi.ipynb` — one per CI test, mirroring `pcmci_parcorr.ipynb` / `pcmci_gpdc.ipynb` /
+`pcmci_cmi.ipynb` so only the algorithm (PCMCI vs. LPCMCI) changes within each pair.
+
+LPCMCI's non-ancestral search phase issues far more CI tests than plain PCMCI's single greedy PC
+step, so every pairing needs tighter bounds than its PCMCI counterpart — and the tighter the
+underlying CI test's per-call cost (ParCorr's analytic t-test < FAISSCMI's shuffle test < GPDCtorch's
+GP fit), the more aggressive the bounds have to get:
+
+| Parameter | ParCorr | GPDCtorch | FAISS-CMI |
+|-----------|---------|-----------|-----------|
+| `tau_max` (LPCMCI's own runs) | 3 | 1 | 1 |
+| `pc_alpha` | 0.01 | 0.01 | 0.01 |
+| `n_preliminary_iterations` | 1 | 0 | 0 |
+| `max_p_global` / `max_p_non_ancestral` / `max_q_global` | 2 / 1 / 2 | 1 / 0 / 1 | 1 / 0 / 1 |
+| CI-test-specific | `significance='analytic'` | `sig_samples=200` (analytic null cache) | `k=0.1`, `sig_samples=50` (vs. 200 in `pcmci_cmi.ipynb`) |
+| Measured: N=22, tightest bounds | 25 s | 120 s | 37 s |
+
+Each notebook documents its own empirical timings (including configs that didn't converge in 3-5+
+minutes and were killed) in a "Runtime Tuning" section — see the tutorial's S2.5 discussion of
+`max_p_non_ancestral` as the intended way to trade the algorithm's asymptotic completeness for
+tractability.
+
+The `FAISSCMI`-style pattern of implementing something inline continues in spirit: LPCMCI's own
+`get_corrected_pvalues` is broken in tigramite 5.2.10.1 (`AttributeError: 'LPCMCI' object has no
+attribute '_check_tau_limits'`), so all three `lpcmci_*.ipynb` notebooks reimplement the
+Benjamini-Hochberg correction directly on `p_matrix`.
+
+Each notebook also reruns its plain-PCMCI counterpart on the `climate_rv` feature set and checks,
+for every parent PCMCI found for `weekly_rv`, whether LPCMCI confirms it as causal or downgrades it
+to confounded (`<->`) — the question causal-sufficiency-assuming methods cannot ask of themselves.
+
 ---
 
 ## Method Comparison
 
-| | ParCorr | GPDCtorch | FAISS-CMI |
-|-|---------|-----------|-----------|
-| Detects | Linear conditional deps | Nonlinear additive | Any dependency |
-| Speed | Fast (analytic) | Slow (~1–2 s/fit on CPU) | Medium (kNN + shuffle) |
-| `tau_max` used | 6 / 16 | 3 | 3 |
-| Significance | Analytic t-test | Analytic DC null | Shuffle test only |
-| Links GPDCtorch finds, ParCorr misses | — | Nonlinear additive | — |
-| Key constraint | Misses nonlinear | `max_combinations=1` needed | Shuffle cost; T must be >> k |
+| | ParCorr | GPDCtorch | FAISS-CMI | LPCMCI (x3 CI tests) |
+|-|---------|-----------|-----------|--------|
+| Detects | Linear conditional deps | Nonlinear additive | Any dependency | Same as paired CI test, confounder-aware |
+| Speed | Fast (analytic) | Slow (~1–2 s/fit on CPU) | Medium (kNN + shuffle) | Fast-to-slow depending on paired CI test (see LPCMCI table above) |
+| `tau_max` used | 6 / 16 | 3 | 3 | 3 (ParCorr) / 1 (GPDCtorch, FAISS-CMI) |
+| Significance | Analytic t-test | Analytic DC null | Shuffle test only | Same as paired CI test |
+| Links GPDCtorch finds, ParCorr misses | — | Nonlinear additive | — | — |
+| Key constraint | Misses nonlinear | `max_combinations=1` needed | Shuffle cost; T must be >> k | Assumes causal sufficiency is **false**; `max_p_non_ancestral` needed for tractability, more so as the paired CI test gets more expensive |
 
 ---
 
